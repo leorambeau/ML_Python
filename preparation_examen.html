@@ -9,6 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
 :root{--p:#6366f1;--pd:#4f46e5;--bg:#0f0f1a;--bgc:#1a1a2e;--bgs:#12121f;--tx:#e2e8f0;--txm:#94a3b8;--bdr:#2d2d4e;--ok:#10b981;--warn:#f59e0b;--err:#ef4444}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -117,10 +119,69 @@ header{background:var(--bgc);border-bottom:1px solid var(--bdr);padding:0 20px;h
 .hprofile{display:flex;align-items:center;gap:8px;font-size:.8rem}
 .hpname{background:rgba(99,102,241,.15);color:#a5b4fc;padding:3px 10px;border-radius:99px;font-weight:600;cursor:pointer;border:1px solid rgba(99,102,241,.25)}
 .hpname:hover{background:rgba(99,102,241,.25)}
+/* Setup screen */
+#setup-screen{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:1001;padding:20px}
+.setup-box{max-width:560px;width:100%;background:var(--bgc);border:1px solid var(--bdr);border-radius:14px;padding:32px;text-align:center}
+.setup-icon{font-size:2.5rem;margin-bottom:12px}
+.setup-box h2{font-size:1.3rem;margin-bottom:10px}
+.setup-box p{color:var(--txm);font-size:.875rem;line-height:1.7;margin-bottom:20px}
+.setup-box code{background:rgba(99,102,241,.15);color:#a5b4fc;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:.85em}
+.setup-steps{text-align:left;display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.setup-step{display:flex;align-items:flex-start;gap:12px;font-size:.875rem;line-height:1.6;color:var(--tx)}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;margin-top:2px}
+.setup-note{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:12px;font-size:.8rem;color:#fde68a;text-align:left;line-height:1.6}
+/* PIN modal */
+#pin-modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:1002}
+.pin-box{background:var(--bgc);border:1px solid var(--bdr);border-radius:14px;padding:28px 32px;text-align:center;width:300px}
+.pin-title{font-size:.95rem;font-weight:600;margin-bottom:20px}
+.pin-row{display:flex;gap:10px;justify-content:center;margin-bottom:8px}
+.pin-digit{width:50px;height:58px;background:#0d1117;border:2px solid var(--bdr);border-radius:8px;color:var(--tx);font-size:1.5rem;text-align:center;outline:none;transition:border-color .15s;font-family:monospace}
+.pin-digit:focus{border-color:var(--p)}
+.pin-errmsg{color:#f87171;font-size:.78rem;min-height:18px;margin-bottom:8px}
+.pin-label{font-size:.75rem;color:var(--txm);margin:10px 0 6px;text-align:left}
+.ps-cancel{padding:10px 14px;background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);border-radius:7px;cursor:pointer;font-size:.85rem;font-weight:600}
+.ps-cancel:hover{background:rgba(239,68,68,.2)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
 </style>
 </head>
 <body>
 
+<!-- Setup guide (shown if Firebase not configured) -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <div class="setup-icon">🔧</div>
+    <h2>Configuration Firebase requise</h2>
+    <p>Pour synchroniser la progression sur tous les appareils, tu dois connecter une base de données Firebase gratuite. C'est une seule fois, prend ~5 minutes.</p>
+    <div class="setup-steps">
+      <div class="setup-step"><div class="step-num">1</div><div>Va sur <strong>console.firebase.google.com</strong> et crée un projet (gratuit, nom libre)</div></div>
+      <div class="setup-step"><div class="step-num">2</div><div>Dans le projet → <strong>Build → Realtime Database → Create database</strong> → choisis "Start in test mode"</div></div>
+      <div class="setup-step"><div class="step-num">3</div><div>⚙️ <strong>Project settings → Your apps → &lt;/&gt;</strong> → Enregistre l'appli → copie le bloc <code>firebaseConfig</code></div></div>
+      <div class="setup-step"><div class="step-num">4</div><div>Ouvre <code>preparation_examen.html</code>, cherche <code>FIREBASE_CONFIG</code> et colle ta config dans les champs vides</div></div>
+      <div class="setup-step"><div class="step-num">5</div><div>Sauvegarde et pousse sur GitHub → le site est prêt pour tout le monde !</div></div>
+    </div>
+    <div class="setup-note">⚠️ Le mode test expire après 30 jours. Dans Firebase → Realtime Database → Rules, mets <code>".read": true, ".write": true</code> pour rendre permanent.</div>
+  </div>
+</div>
+
+<!-- PIN modal (overlay) -->
+<div id="pin-modal">
+  <div class="pin-box">
+    <div class="pin-title">🔐 PIN pour <strong id="pin-profile-name"></strong></div>
+    <div class="pin-row" id="login-pin-row">
+      <input class="pin-digit" type="password" inputmode="numeric" maxlength="1">
+      <input class="pin-digit" type="password" inputmode="numeric" maxlength="1">
+      <input class="pin-digit" type="password" inputmode="numeric" maxlength="1">
+      <input class="pin-digit" type="password" inputmode="numeric" maxlength="1">
+    </div>
+    <div class="pin-errmsg" id="pin-error"></div>
+    <div style="display:flex;gap:8px">
+      <button class="ps-fbtn" style="flex:1" id="pin-enter-btn" onclick="verifyPin()">Entrer</button>
+      <button class="ps-cancel" onclick="cancelPin()">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile selection screen -->
 <div id="ps">
   <div class="psc">
     <div class="ps-logo">🎓 ML Finance</div>
@@ -130,9 +191,16 @@ header{background:var(--bgc);border-bottom:1px solid var(--bdr);padding:0 20px;h
     <button class="ps-newbtn" onclick="showCreateForm()">+ Créer un nouveau profil</button>
     <div class="ps-form" id="ps-form">
       <h3>Nouveau profil</h3>
-      <input class="ps-input" id="ps-input" type="text" placeholder="Ton prénom..." maxlength="24"
-             onkeydown="if(event.key==='Enter') createProfile()">
-      <button class="ps-fbtn" onclick="createProfile()">Créer mon profil</button>
+      <input class="ps-input" id="ps-name-input" type="text" placeholder="Ton prénom..." maxlength="24">
+      <div class="pin-label">PIN à 4 chiffres (pour retrouver ton profil depuis n'importe où)</div>
+      <div class="pin-row" id="create-pin-row">
+        <input class="pin-digit" type="password" inputmode="numeric" maxlength="1">
+        <input class="pin-digit" type="password" inputmode="numeric" maxlength="1">
+        <input class="pin-digit" type="password" inputmode="numeric" maxlength="1">
+        <input class="pin-digit" type="password" inputmode="numeric" maxlength="1">
+      </div>
+      <div class="pin-errmsg" id="create-pin-error"></div>
+      <button class="ps-fbtn" id="create-btn" onclick="createProfile()">Créer mon profil</button>
     </div>
   </div>
 </div>
@@ -1530,6 +1598,31 @@ print("Copie le code de l'exemple dans ton terminal !")`,
 }
 ];
 
+// ══════════════════════════════════════════════════════════════════
+// CONFIGURATION FIREBASE
+// 1. Va sur console.firebase.google.com → crée un projet
+// 2. Build → Realtime Database → Create database → test mode
+// 3. Project settings → Your apps → </> → copie la config
+// 4. Colle les valeurs ci-dessous, sauvegarde et pousse sur GitHub
+// ══════════════════════════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "",       // obligatoire — ex: https://ton-projet-rtdb.firebaseio.com
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+// ══════════════════════════════════════════════════════════════════
+
+const FB_READY = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
+let db = null;
+if (FB_READY) {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  db = firebase.database();
+}
+
 // ─── APP STATE ─────────────────────────────────────────────────────────────────
 const state = {
   current: 0,
@@ -1540,14 +1633,40 @@ const state = {
   completed: new Set()
 };
 
-// ─── PROFILE SYSTEM ────────────────────────────────────────────────────────────
-function getProfiles() {
-  return JSON.parse(localStorage.getItem('ml_profiles_v1') || '{}');
+// ─── FIREBASE DB OPS ───────────────────────────────────────────────────────────
+async function dbGetProfiles() {
+  if (!db) return {};
+  const snap = await db.ref('profiles').get();
+  return snap.val() || {};
 }
-function saveProfiles(p) {
-  localStorage.setItem('ml_profiles_v1', JSON.stringify(p));
+async function dbSetProfile(name, data) {
+  if (!db) return;
+  await db.ref(`profiles/${encodeKey(name)}`).set(data);
+}
+async function dbDeleteProfile(name) {
+  if (!db) return;
+  await db.ref(`profiles/${encodeKey(name)}`).remove();
+}
+async function dbUpdateProgress(name, completed) {
+  if (!db) return;
+  await db.ref(`profiles/${encodeKey(name)}`).update({
+    completed: [...completed],
+    lastActive: new Date().toISOString()
+  });
+}
+function encodeKey(name) {
+  // Firebase keys can't contain . # $ / [ ]
+  return name.replace(/[.#$\/\[\]]/g, '_');
 }
 
+// ─── PIN HASHING ───────────────────────────────────────────────────────────────
+async function hashPin(pin) {
+  const data = new TextEncoder().encode('mlfinance_' + pin);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 20);
+}
+
+// ─── PROFILE SYSTEM ────────────────────────────────────────────────────────────
 const COLORS = ['#6366f1','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ef4444','#ec4899'];
 function avatarColor(name) {
   let h = 0;
@@ -1555,66 +1674,97 @@ function avatarColor(name) {
   return COLORS[Math.abs(h) % COLORS.length];
 }
 
-function renderProfileScreen() {
-  const profiles = getProfiles();
-  const names = Object.keys(profiles);
-  const grid = document.getElementById('ps-grid');
-  if (names.length === 0) {
-    grid.innerHTML = '<p class="ps-empty">Aucun profil — crée le tien !</p>';
+let pinTarget = null;
+
+async function renderProfileScreen() {
+  if (!FB_READY) {
+    document.getElementById('ps').style.display = 'none';
+    document.getElementById('setup-screen').style.display = 'flex';
     return;
   }
-  grid.innerHTML = names.map(name => {
-    const p = profiles[name];
-    const done = (p.completed || []).length;
-    const pct  = Math.round(done / LESSONS.length * 100);
-    const date = p.lastActive
-      ? new Date(p.lastActive).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})
-      : 'Jamais';
-    const color = avatarColor(name);
-    return `<div class="ps-card" onclick="selectProfile('${name}')">
-      <div class="ps-avatar" style="background:${color}">${name[0].toUpperCase()}</div>
-      <div class="ps-info">
-        <div class="ps-pname">${name}</div>
-        <div class="ps-pstat">${done}/${LESSONS.length} leçons · ${date}</div>
-        <div class="ps-pbar"><div class="ps-pbfill" style="width:${pct}%"></div></div>
-      </div>
-      <button class="ps-del" onclick="deleteProfile(event,'${name}')" title="Supprimer">✕</button>
-    </div>`;
-  }).join('');
+  const grid = document.getElementById('ps-grid');
+  grid.innerHTML = `<div style="color:var(--txm);font-size:.82rem;display:flex;align-items:center;gap:8px"><span class="spin"></span> Chargement...</div>`;
+  try {
+    const profiles = await dbGetProfiles();
+    const names = Object.keys(profiles);
+    if (names.length === 0) {
+      grid.innerHTML = '<p class="ps-empty">Aucun profil — crée le tien !</p>';
+      return;
+    }
+    grid.innerHTML = names.map(name => {
+      const p = profiles[name];
+      const done = (p.completed || []).length;
+      const pct  = Math.round(done / LESSONS.length * 100);
+      const date = p.lastActive
+        ? new Date(p.lastActive).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})
+        : 'Jamais';
+      const color = avatarColor(name);
+      return `<div class="ps-card" onclick="startLogin('${name}')">
+        <div class="ps-avatar" style="background:${color}">${name[0].toUpperCase()}</div>
+        <div class="ps-info">
+          <div class="ps-pname">${name}</div>
+          <div class="ps-pstat">${done}/${LESSONS.length} leçons · ${date}</div>
+          <div class="ps-pbar"><div class="ps-pbfill" style="width:${pct}%"></div></div>
+        </div>
+        <button class="ps-del" onclick="confirmDeleteProfile(event,'${name}')" title="Supprimer">✕</button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = `<p class="ps-empty" style="color:var(--err)">Erreur de connexion — vérifie ta config Firebase</p>`;
+    console.error(e);
+  }
 }
 
-function showCreateForm() {
-  const f = document.getElementById('ps-form');
-  f.style.display = f.style.display === 'block' ? 'none' : 'block';
-  if (f.style.display === 'block') setTimeout(() => document.getElementById('ps-input').focus(), 50);
+// ─── LOGIN FLOW ────────────────────────────────────────────────────────────────
+function startLogin(name) {
+  pinTarget = name;
+  document.getElementById('pin-profile-name').textContent = name;
+  document.getElementById('pin-error').textContent = '';
+  clearPinRow('login-pin-row');
+  document.getElementById('pin-modal').style.display = 'flex';
+  document.querySelector('#login-pin-row .pin-digit').focus();
 }
 
-function createProfile() {
-  const input = document.getElementById('ps-input');
-  const name  = input.value.trim();
-  if (!name) { input.focus(); return; }
-  const profiles = getProfiles();
-  if (profiles[name]) { alert('Ce profil existe déjà !'); return; }
-  profiles[name] = { name, completed: [], createdAt: new Date().toISOString() };
-  saveProfiles(profiles);
-  input.value = '';
-  document.getElementById('ps-form').style.display = 'none';
-  selectProfile(name);
+function cancelPin() {
+  document.getElementById('pin-modal').style.display = 'none';
+  pinTarget = null;
 }
 
-function deleteProfile(evt, name) {
-  evt.stopPropagation();
-  if (!confirm(`Supprimer le profil "${name}" ? Sa progression sera perdue.`)) return;
-  const profiles = getProfiles();
-  delete profiles[name];
-  saveProfiles(profiles);
-  renderProfileScreen();
+async function verifyPin() {
+  const pin = getPinValue('login-pin-row');
+  if (pin.length < 4) {
+    document.getElementById('pin-error').textContent = 'Entrer 4 chiffres';
+    return;
+  }
+  const btn = document.getElementById('pin-enter-btn');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const profiles = await dbGetProfiles();
+    const profile = profiles[encodeKey(pinTarget)] || profiles[pinTarget];
+    if (!profile) throw new Error('Profil introuvable');
+    const hashed = await hashPin(pin);
+    if (hashed !== profile.pinHash) {
+      document.getElementById('pin-error').textContent = 'PIN incorrect — réessaie';
+      const box = document.querySelector('.pin-box');
+      box.style.animation = 'shake .4s';
+      setTimeout(() => box.style.animation = '', 450);
+      clearPinRow('login-pin-row');
+      document.querySelector('#login-pin-row .pin-digit').focus();
+      return;
+    }
+    document.getElementById('pin-modal').style.display = 'none';
+    enterApp(pinTarget, profile.completed || []);
+    pinTarget = null;
+  } catch(e) {
+    document.getElementById('pin-error').textContent = e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrer';
+  }
 }
 
-function selectProfile(name) {
+function enterApp(name, completed) {
   state.activeProfile = name;
-  const profiles = getProfiles();
-  state.completed = new Set(profiles[name]?.completed || []);
+  state.completed = new Set(completed);
   document.getElementById('hpname-text').textContent = name;
   document.getElementById('ps').style.display = 'none';
   if (state.pyodideReady) {
@@ -1626,10 +1776,90 @@ function selectProfile(name) {
   }
 }
 
+// ─── CREATE PROFILE ────────────────────────────────────────────────────────────
+function showCreateForm() {
+  const f = document.getElementById('ps-form');
+  f.style.display = f.style.display === 'block' ? 'none' : 'block';
+  if (f.style.display === 'block') setTimeout(() => document.getElementById('ps-name-input').focus(), 50);
+}
+
+async function createProfile() {
+  const name = document.getElementById('ps-name-input').value.trim();
+  const pin  = getPinValue('create-pin-row');
+  document.getElementById('create-pin-error').textContent = '';
+  if (!name) { document.getElementById('ps-name-input').focus(); return; }
+  if (pin.length < 4) {
+    document.getElementById('create-pin-error').textContent = 'Choisis un PIN à 4 chiffres';
+    return;
+  }
+  const btn = document.getElementById('create-btn');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const profiles = await dbGetProfiles();
+    if (profiles[encodeKey(name)]) {
+      alert(`Le profil "${name}" existe déjà. Choisis un autre prénom.`);
+      return;
+    }
+    const pinHash = await hashPin(pin);
+    await dbSetProfile(name, {
+      name,
+      pinHash,
+      completed: [],
+      createdAt: new Date().toISOString(),
+      lastActive: new Date().toISOString()
+    });
+    document.getElementById('ps-form').style.display = 'none';
+    document.getElementById('ps-name-input').value = '';
+    clearPinRow('create-pin-row');
+    enterApp(name, []);
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Créer mon profil';
+  }
+}
+
+async function confirmDeleteProfile(evt, name) {
+  evt.stopPropagation();
+  if (!confirm(`Supprimer "${name}" ? Cette action est irréversible.`)) return;
+  try {
+    await dbDeleteProfile(name);
+    await renderProfileScreen();
+  } catch(e) { alert('Erreur : ' + e.message); }
+}
+
 function switchProfile() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('ps').style.display = 'flex';
   renderProfileScreen();
+}
+
+// ─── PIN HELPERS ───────────────────────────────────────────────────────────────
+function getPinValue(rowId) {
+  return Array.from(document.querySelectorAll(`#${rowId} .pin-digit`)).map(i => i.value).join('');
+}
+function clearPinRow(rowId) {
+  document.querySelectorAll(`#${rowId} .pin-digit`).forEach(i => i.value = '');
+}
+function setupPinRow(rowId, onComplete) {
+  const inputs = document.querySelectorAll(`#${rowId} .pin-digit`);
+  inputs.forEach((inp, i) => {
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.replace(/\D/g, '').slice(0, 1);
+      if (inp.value && i < inputs.length - 1) inputs[i + 1].focus();
+      if (inp.value && i === inputs.length - 1 && onComplete) onComplete();
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !inp.value && i > 0) inputs[i - 1].focus();
+    });
+    inp.addEventListener('paste', e => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 4);
+      inputs.forEach((inp2, j) => inp2.value = text[j] || '');
+      if (text.length === 4 && onComplete) onComplete();
+      else inputs[Math.min(text.length, 3)].focus();
+    });
+  });
 }
 
 // ─── PYODIDE INIT ──────────────────────────────────────────────────────────────
@@ -1907,11 +2137,7 @@ function goTo(idx) {
 function markDone(idx) {
   state.completed.add(idx);
   if (state.activeProfile) {
-    const profiles = getProfiles();
-    if (!profiles[state.activeProfile]) profiles[state.activeProfile] = { name: state.activeProfile, completed: [] };
-    profiles[state.activeProfile].completed = [...state.completed];
-    profiles[state.activeProfile].lastActive = new Date().toISOString();
-    saveProfiles(profiles);
+    dbUpdateProgress(state.activeProfile, state.completed).catch(e => console.warn('Save error:', e));
   }
   updateSidebar();
   const btn = document.querySelector(`button[onclick="markDone(${idx})"]`);
@@ -1919,7 +2145,9 @@ function markDone(idx) {
 }
 
 // ─── BOOT ──────────────────────────────────────────────────────────────────────
-// Load Pyodide in background immediately, show profile screen in parallel
+setupPinRow('login-pin-row', () => setTimeout(verifyPin, 100));
+setupPinRow('create-pin-row', null);
+
 initPyodide().catch(e => {
   document.getElementById('lstatus').textContent = 'Erreur de chargement. Recharge la page.';
   console.error(e);
