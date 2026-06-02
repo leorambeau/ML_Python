@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Finance — Prépare ton Examen</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+<style>
+:root{--p:#6366f1;--pd:#4f46e5;--bg:#0f0f1a;--bgc:#1a1a2e;--bgs:#12121f;--tx:#e2e8f0;--txm:#94a3b8;--bdr:#2d2d4e;--ok:#10b981;--warn:#f59e0b;--err:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:999}
+.load-title{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.load-sub{color:var(--txm);font-size:.9rem}
+.lbar{width:280px;height:6px;background:var(--bdr);border-radius:3px;overflow:hidden}
+.lfill{height:100%;width:0%;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:3px;transition:width .3s}
+#lstatus{color:var(--txm);font-size:.82rem}
+#app{display:none;flex-direction:column;height:100vh}
+header{background:var(--bgc);border-bottom:1px solid var(--bdr);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.htitle{font-size:1rem;font-weight:700;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hprog{display:flex;align-items:center;gap:10px;font-size:.8rem;color:var(--txm)}
+.pbar{width:160px;height:5px;background:var(--bdr);border-radius:3px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,#6366f1,var(--ok));border-radius:3px;transition:width .5s}
+.wrap{display:flex;flex:1;overflow:hidden}
+.side{width:250px;background:var(--bgs);border-right:1px solid var(--bdr);overflow-y:auto;flex-shrink:0;padding:12px 0}
+.side::-webkit-scrollbar{width:3px}.side::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+.mhdr{padding:6px 14px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--txm);margin-top:6px}
+.li{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.li:hover{background:rgba(99,102,241,.08)}
+.li.act{background:rgba(99,102,241,.15);border-left-color:var(--p)}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--bdr);flex-shrink:0;transition:background .2s}
+.li.act .ldot{background:var(--p)}
+.li.done .ldot{background:var(--ok)}
+.lname{font-size:.8rem;color:var(--txm);line-height:1.4}
+.li.act .lname,.li.done .lname{color:var(--tx)}
+.content{flex:1;overflow-y:auto;padding:24px 28px}
+.content::-webkit-scrollbar{width:5px}.content::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+.card{background:var(--bgc);border:1px solid var(--bdr);border-radius:10px;padding:18px;margin-bottom:14px}
+.ctag{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--p);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ltitle{font-size:1.4rem;font-weight:700;margin-bottom:6px}
+.lsub{font-size:.88rem;color:var(--txm);line-height:1.6}
+.ctext{font-size:.875rem;line-height:1.8;color:var(--tx)}
+.ctext code{background:rgba(99,102,241,.15);color:#a5b4fc;padding:1px 5px;border-radius:4px;font-family:'Fira Code',monospace;font-size:.83em}
+.ctext strong{color:#c4b5fd}
+.ctext ul{margin:8px 0 8px 20px}.ctext li{margin:3px 0}
+.ewrap{border:1px solid var(--bdr);border-radius:8px;overflow:hidden;margin-bottom:10px}
+.eheader{background:#1e1e2e;padding:7px 12px;display:flex;align-items:center;justify-content:space-between}
+.elabel{font-size:.72rem;color:var(--txm);font-family:monospace}
+.CodeMirror{height:auto!important;min-height:80px;font-size:12.5px;font-family:'Fira Code','Consolas',monospace;line-height:1.55}
+.CodeMirror-scroll{max-height:350px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:none;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.brun{background:var(--p);color:#fff}.brun:hover:not(:disabled){background:var(--pd)}
+.bhint{background:rgba(245,158,11,.1);color:var(--warn);border:1px solid rgba(245,158,11,.3)}.bhint:hover{background:rgba(245,158,11,.2)}
+.bsol{background:rgba(16,185,129,.08);color:var(--ok);border:1px solid rgba(16,185,129,.2)}.bsol:hover{background:rgba(16,185,129,.15)}
+.bnav{background:var(--bgc);color:var(--tx);border:1px solid var(--bdr);padding:9px 18px}.bnav:hover:not(:disabled){background:rgba(99,102,241,.1);border-color:var(--p)}
+.bnav.pri{background:var(--p);border-color:var(--p);color:#fff}.bnav.pri:hover:not(:disabled){background:var(--pd)}
+.bcopy{background:rgba(6,182,212,.1);color:#67e8f9;border:1px solid rgba(6,182,212,.2)}.bcopy:hover{background:rgba(6,182,212,.2)}
+.bgrp{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;align-items:center}
+.out{background:#0d1117;border:1px solid var(--bdr);border-radius:7px;padding:11px;font-family:'Fira Code',monospace;font-size:.78rem;min-height:40px;color:#d4e4bc;white-space:pre-wrap;word-break:break-all;margin-top:8px}
+.out.err{color:#ff8080}
+.oimg{margin-top:10px;max-width:100%;border-radius:8px;display:none;border:1px solid var(--bdr)}
+.hpanel,.spanel{display:none;border-radius:7px;padding:12px;margin-top:9px;font-size:.83rem;line-height:1.65}
+.hpanel{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);color:#fde68a}
+.spanel{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);color:var(--tx)}
+.hpanel code,.spanel code{background:rgba(0,0,0,.3);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:.9em}
+.spanel pre{background:#0d1117;border-radius:6px;padding:10px;overflow-x:auto;font-size:.78rem;line-height:1.5;color:#d4e4bc;margin-top:8px}
+.ibox{display:flex;gap:9px;padding:11px 13px;border-radius:7px;font-size:.83rem;line-height:1.55;margin:10px 0}
+.ibox.blue{background:rgba(6,182,212,.07);border:1px solid rgba(6,182,212,.18);color:#67e8f9}
+.ibox.yellow{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);color:#fde68a}
+.ibox.red{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);color:#fca5a5}
+.ibox.green{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.18);color:#6ee7b7}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:.68rem;font-weight:700}
+.bexam{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25)}
+.bpytorch{background:rgba(238,107,55,.12);color:#fdba74;border:1px solid rgba(238,107,55,.25)}
+.nfooter{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:18px;border-top:1px solid var(--bdr)}
+.spin{width:12px;height:12px;border:2px solid var(--bdr);border-top-color:var(--p);border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ktable{width:100%;border-collapse:collapse;font-size:.82rem;margin:10px 0}
+.ktable th{background:rgba(99,102,241,.1);padding:7px 10px;text-align:left;font-weight:600;color:#a5b4fc;border-bottom:1px solid var(--bdr)}
+.ktable td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.04)}
+.ktable td:first-child{font-family:monospace;color:#a5b4fc}
+.eprompt{font-size:.875rem;line-height:1.75;margin-bottom:12px}
+.eprompt strong{color:#c4b5fd}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="load-title">ML Finance</div>
+  <div class="load-sub">Préparation à l'Examen Final</div>
+  <div class="lbar"><div class="lfill" id="lfill"></div></div>
+  <div id="lstatus">Initialisation...</div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="htitle">🎓 ML Finance — Préparation Examen</div>
+    <div class="hprog">
+      <span id="hprogtext">0 / 18</span>
+      <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+    </div>
+  </header>
+  <div class="wrap">
+    <aside class="side" id="sidebar"></aside>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<script>
+// ─── LESSONS DATA ──────────────────────────────────────────────────────────────
+const LESSONS = [
+{
+  module:"Module 1 · Bases Python",
+  title:"Variables et Types",
+  runnable:true,
+  concept:`<p>Une <strong>variable</strong> est une boîte qui stocke une valeur. On utilise <code>=</code> pour assigner. Python a plusieurs types : <code>int</code> (entier), <code>float</code> (décimal), <code>str</code> (texte), <code>bool</code> (vrai/faux).</p>
+<p>Les <strong>f-strings</strong> permettent d'insérer des variables dans du texte avec <code>f"texte {variable:.2f}"</code> — le <code>:.2f</code> arrondit à 2 décimales.</p>`,
+  example:`# Variables de base
+x = 42           # entier (int)
+pi = 3.14159     # décimal (float)
+nom = "Finance"  # texte (str)
+actif = True     # booléen (bool)
+
+# Opérations arithmétiques
+print(x + 8)
+print(pi * 2)
+print(x ** 2)    # puissance
+
+# f-string : intégrer une variable dans du texte
+rendement = 0.08
+print(f"Rendement annuel : {rendement * 100:.1f}%")
+print(f"Type de x : {type(x)}")`,
+  exercisePrompt:`Crée trois variables : <strong>capital = 10000</strong>, <strong>rendement = 0.08</strong>, <strong>nom_actif = "BTC"</strong>. Calcule le gain (<code>capital * rendement</code>) et affiche : <em>"Gain sur BTC : 800.00 €"</em> en utilisant une f-string.`,
+  starter:`# Complète le code ci-dessous
+capital = # TODO
+rendement = # TODO
+nom_actif = # TODO
+
+gain = # TODO
+print(# TODO)`,
+  hint:`La multiplication: <code>gain = capital * rendement</code>. Pour le print: <code>f"Gain sur {nom_actif} : {gain:.2f} €"</code>`,
+  solution:`capital = 10000
+rendement = 0.08
+nom_actif = "BTC"
+
+gain = capital * rendement
+print(f"Gain sur {nom_actif} : {gain:.2f} €")`
+},
+{
+  module:"Module 1 · Bases Python",
+  title:"Listes, Boucles et Fonctions",
+  runnable:true,
+  concept:`<p>Une <strong>liste</strong> stocke plusieurs valeurs : <code>[a, b, c]</code>. L'index commence à 0. <code>liste[-1]</code> = dernier élément.</p>
+<p>La boucle <strong>for</strong> répète une action : <code>for x in liste: ...</code>.</p>
+<p>Une <strong>fonction</strong> est définie avec <code>def nom(paramètres):</code> et retourne avec <code>return</code>.</p>`,
+  example:`# Listes
+alphas = [0.1, 1.0, 10.0, 100.0]
+print("Premier:", alphas[0])
+print("Dernier:", alphas[-1])
+
+# Boucle for
+for a in alphas:
+    print(f"  alpha = {a}")
+
+# Fonction avec return
+def calculer_rmse(mse):
+    """RMSE = racine carrée du MSE"""
+    return mse ** 0.5
+
+print("RMSE:", calculer_rmse(4.0))  # 2.0
+
+# Accumuler des résultats dans une liste
+carres = []
+for i in range(1, 6):
+    carres.append(i ** 2)
+print("Carrés:", carres)`,
+  exercisePrompt:`Écris une fonction <code>moyenne(liste_valeurs)</code> qui calcule la moyenne d'une liste. Teste-la sur <code>[1, 2, 3, 4, 5]</code> (résultat attendu : 3.0). <strong>Indice :</strong> utilise <code>sum()</code> et <code>len()</code>.`,
+  starter:`def moyenne(liste_valeurs):
+    # TODO: calculer et retourner la moyenne
+    pass
+
+# Test
+result = moyenne([1, 2, 3, 4, 5])
+print(f"Moyenne: {result}")  # doit afficher 3.0
+
+# Bonus: tester sur plusieurs listes
+for l in [[10, 20, 30], [1, 1, 1, 1]]:
+    print(f"Moyenne de {l} = {moyenne(l)}")`,
+  hint:`<code>return sum(liste_valeurs) / len(liste_valeurs)</code>`,
+  solution:`def moyenne(liste_valeurs):
+    return sum(liste_valeurs) / len(liste_valeurs)
+
+result = moyenne([1, 2, 3, 4, 5])
+print(f"Moyenne: {result}")
+
+for l in [[10, 20, 30], [1, 1, 1, 1]]:
+    print(f"Moyenne de {l} = {moyenne(l)}")`
+},
+{
+  module:"Module 2 · NumPy",
+  title:"Tableaux NumPy",
+  runnable:true,
+  concept:`<p><strong>NumPy</strong> est la bibliothèque de calcul numérique. On l'importe avec <code>import numpy as np</code>.</p>
+<p>Un tableau NumPy est comme une matrice. <code>.shape</code> donne les dimensions <code>(lignes, colonnes)</code>. <code>np.random.randn(n, p)</code> génère une matrice aléatoire n×p avec des valeurs suivant une loi normale.</p>`,
+  example:`import numpy as np
+
+# Créer des tableaux
+v = np.array([1, 2, 3, 4, 5])        # vecteur 1D
+M = np.zeros((3, 4))                  # matrice 3x4 de zéros
+R = np.random.randn(5, 7)            # matrice 5x7 aléatoire
+
+print("Vecteur:", v)
+print("Shape vecteur:", v.shape)      # (5,)
+print("Shape matrice:", M.shape)      # (3, 4)
+print("Shape aléatoire:", R.shape)    # (5, 7)
+
+# Slicing (découper un tableau)
+print("Première ligne:", R[0, :])     # ligne 0
+print("Première colonne:", R[:, 0])  # colonne 0
+print("Sous-matrice 2x3:", R[:2, :3]) # 2 premières lignes, 3 premières colonnes
+
+# Statistiques
+print("Moyenne:", R.mean())
+print("Max:", R.max())`,
+  exercisePrompt:`Crée une matrice <strong>X</strong> de 100 lignes et 7 colonnes avec <code>np.random.randn</code>. Affiche : sa forme, la moyenne globale (arrondie à 4 déc.), et les 2 premières lignes.`,
+  starter:`import numpy as np
+
+np.random.seed(42)  # pour reproductibilité
+
+# Crée X : 100 observations, 7 features
+X = # TODO
+
+print("Shape:", # TODO)
+print("Moyenne:", round(# TODO, 4))
+print("2 premières lignes:")
+print(# TODO)`,
+  hint:`<code>X = np.random.randn(100, 7)</code>. Shape: <code>X.shape</code>. Moyenne: <code>X.mean()</code>. Premières lignes: <code>X[:2]</code>`,
+  solution:`import numpy as np
+
+np.random.seed(42)
+
+X = np.random.randn(100, 7)
+
+print("Shape:", X.shape)
+print("Moyenne:", round(X.mean(), 4))
+print("2 premières lignes:")
+print(X[:2])`
+},
+{
+  module:"Module 2 · NumPy",
+  title:"Opérations Matricielles",
+  runnable:true,
+  concept:`<p><strong>Multiplication matricielle</strong> avec <code>@</code> : si X est (n,p) et W est (p,k), alors <code>X @ W</code> donne une matrice (n,k).</p>
+<p><strong>ReLU</strong> : <code>np.maximum(0, x)</code> met à zéro toutes les valeurs négatives. C'est l'activation utilisée pour générer les random features de l'examen.</p>
+<p><strong>hstack</strong> : <code>np.hstack([A, B])</code> colle deux matrices côte à côte.</p>`,
+  example:`import numpy as np
+
+np.random.seed(42)
+X = np.random.randn(100, 7)   # 100 obs, 7 features
+W = np.random.randn(7, 20)    # poids aléatoires
+
+# Multiplication matricielle @
+Z = X @ W                      # (100,7) @ (7,20) → (100,20)
+print("X @ W shape:", Z.shape)
+
+# ReLU : max(0, x)
+def relu(x):
+    return np.maximum(0, x)
+
+Z_relu = relu(Z)
+print("Valeurs négatives après ReLU:", (Z_relu < 0).sum())  # 0
+
+# Coller les features originales + random features
+X_aug = np.hstack([X, Z_relu])  # (100, 7+20) = (100, 27)
+print("X augmenté shape:", X_aug.shape)`,
+  exercisePrompt:`Génère <strong>X</strong> (50, 7) et <strong>W</strong> (7, 15). Applique ReLU à <code>X @ W</code>. Augmente X avec ces features (hstack). Affiche les 3 shapes.`,
+  starter:`import numpy as np
+
+np.random.seed(42)
+
+X = np.random.randn(50, 7)
+W = # TODO  # matrice de dimension (7, 15)
+
+def relu(x):
+    return # TODO
+
+Z = # TODO
+
+# Augmente X en collant X et Z côte à côte
+X_aug = # TODO
+
+print("X shape:", X.shape)        # (50, 7)
+print("Z shape:", Z.shape)        # (50, 15)
+print("X_aug shape:", X_aug.shape) # (50, 22)`,
+  hint:`<code>W = np.random.randn(7, 15)</code>. ReLU: <code>np.maximum(0, x)</code>. Augmentation: <code>np.hstack([X, Z])</code>`,
+  solution:`import numpy as np
+
+np.random.seed(42)
+
+X = np.random.randn(50, 7)
+W = np.random.randn(7, 15)
+
+def relu(x):
+    return np.maximum(0, x)
+
+Z = relu(X @ W)
+
+X_aug = np.hstack([X, Z])
+
+print("X shape:", X.shape)
+print("Z shape:", Z.shape)
+print("X_aug shape:", X_aug.shape)`
+},
+{
+  module:"Module 3 · Pandas",
+  title:"Charger et Explorer les Données",
+  runnable:true,
+  concept:`<p>En examen, le chargement se fait avec <code>pd.read_csv('data/exercise1.csv')</code>. Ici on crée un DataFrame directement pour pratiquer.</p>
+<table class="ktable"><tr><th>Méthode</th><th>Ce qu'elle fait</th></tr>
+<tr><td>df.head(n)</td><td>Affiche les n premières lignes</td></tr>
+<tr><td>df.shape</td><td>(n_lignes, n_colonnes)</td></tr>
+<tr><td>df.describe()</td><td>Statistiques (mean, std, min, max...)</td></tr>
+<tr><td>df.isna().sum().sum()</td><td>Nombre total de valeurs manquantes</td></tr>
+<tr><td>list(df.columns)</td><td>Liste des noms de colonnes</td></tr></table>`,
+  example:`import pandas as pd
+import numpy as np
+
+np.random.seed(42)
+
+# En examen: df = pd.read_csv('data/exercise1.csv')
+df = pd.DataFrame(
+    np.random.randn(200, 8),
+    columns=[f'signal_{i}' for i in range(7)] + ['return']
+)
+
+# Simuler quelques NaN
+df.iloc[5, 2] = np.nan
+df.iloc[10, 5] = np.nan
+
+print("Shape:", df.shape)
+print("\nPremières lignes:")
+print(df.head(3).round(3))
+print("\nNaN par colonne:")
+print(df.isna().sum())
+print(f"\nNaN total: {df.isna().sum().sum()}")
+print(f"Colonnes: {list(df.columns)}")`,
+  exercisePrompt:`Crée un DataFrame de 100 lignes, 5 colonnes nommées 'A', 'B', 'C', 'D', 'target'. Affiche : sa forme, le nombre total de NaN, et les statistiques avec <code>describe()</code>.`,
+  starter:`import pandas as pd
+import numpy as np
+
+np.random.seed(0)
+df = pd.DataFrame(
+    np.random.randn(100, 5),
+    columns=['A', 'B', 'C', 'D', 'target']
+)
+
+# Forme du DataFrame
+print("Shape:", # TODO)
+
+# Total de NaN
+print("NaN total:", # TODO)
+
+# Statistiques
+print("\nStatistiques:")
+print(# TODO)`,
+  hint:`<code>df.shape</code>, <code>df.isna().sum().sum()</code>, <code>df.describe()</code>`,
+  solution:`import pandas as pd
+import numpy as np
+
+np.random.seed(0)
+df = pd.DataFrame(
+    np.random.randn(100, 5),
+    columns=['A', 'B', 'C', 'D', 'target']
+)
+
+print("Shape:", df.shape)
+print("NaN total:", df.isna().sum().sum())
+print("\nStatistiques:")
+print(df.describe().round(2))`
+},
+{
+  module:"Module 3 · Pandas",
+  title:"Sélectionner X et y",
+  runnable:true,
+  concept:`<p>En ML, on sépare les <strong>features X</strong> (variables explicatives) de la <strong>cible y</strong>.</p>
+<p><code>df.iloc[:, :7]</code> sélectionne les 7 premières colonnes (toutes les lignes <code>:</code>, colonnes 0 à 6). <code>.values</code> convertit en tableau NumPy.</p>
+<p><code>df.iloc[:, 7]</code> ou <code>df.iloc[:, -1]</code> = dernière colonne.</p>
+<div class="ibox yellow">⚠️ Dans l'examen, le code donne exactement : <code>X = df.iloc[:, :7].values</code> et <code>y = df.iloc[:, 7].values</code></div>`,
+  example:`import pandas as pd
+import numpy as np
+
+np.random.seed(42)
+# DataFrame avec 7 features + 1 target (structure de l'examen)
+df = pd.DataFrame(
+    np.random.randn(100, 8),
+    columns=[f'f{i}' for i in range(7)] + ['target']
+)
+
+# Sélectionner les features et la cible
+X = df.iloc[:, :7].values   # toutes les lignes, 7 premières colonnes
+y = df.iloc[:, 7].values    # toutes les lignes, colonne 7 (= dernière)
+
+print("X shape:", X.shape)   # (100, 7)
+print("y shape:", y.shape)   # (100,)
+print("Type de X:", type(X)) # numpy.ndarray
+print("5 premières valeurs de y:", y[:5].round(3))`,
+  exercisePrompt:`À partir du DataFrame <code>df</code> ci-dessous (9 colonnes : 8 features + 1 target), extrais <strong>X</strong> (8 features) et <strong>y</strong> (cible). Affiche les shapes.`,
+  starter:`import pandas as pd
+import numpy as np
+
+np.random.seed(0)
+df = pd.DataFrame(
+    np.random.randn(150, 9),
+    columns=[f'col_{i}' for i in range(8)] + ['target']
+)
+
+# Extrais les 8 premières colonnes comme features
+X = # TODO  → shape attendue: (150, 8)
+
+# Extrais la dernière colonne comme cible
+y = # TODO  → shape attendue: (150,)
+
+print("X shape:", X.shape)
+print("y shape:", y.shape)`,
+  hint:`<code>X = df.iloc[:, :8].values</code>. <code>y = df.iloc[:, -1].values</code> (ou <code>df.iloc[:, 8].values</code>)`,
+  solution:`import pandas as pd
+import numpy as np
+
+np.random.seed(0)
+df = pd.DataFrame(
+    np.random.randn(150, 9),
+    columns=[f'col_{i}' for i in range(8)] + ['target']
+)
+
+X = df.iloc[:, :8].values
+y = df.iloc[:, -1].values
+
+print("X shape:", X.shape)
+print("y shape:", y.shape)`
+},
+{
+  module:"Module 4 · Scikit-learn",
+  title:"Train / Test Split",
+  runnable:true,
+  concept:`<p>On divise les données en <strong>entraînement</strong> (train) et <strong>test</strong>. Le modèle apprend sur train, on évalue sur test (données jamais vues).</p>
+<p><code>train_test_split(X, y, test_size=0.2, random_state=42)</code> retourne 4 tableaux : <code>X_train, X_test, y_train, y_test</code>.</p>
+<p><code>random_state=42</code> : toujours le même split (reproductible). <code>test_size=0.2</code> = 20% pour le test.</p>`,
+  example:`import numpy as np
+from sklearn.model_selection import train_test_split
+
+np.random.seed(42)
+X = np.random.randn(100, 7)
+y = X @ np.ones(7) + np.random.randn(100)
+
+# Division 80% train / 20% test
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,
+    random_state=42
+)
+
+print(f"Total       : {len(X)} observations")
+print(f"Train       : {len(X_train)} ({len(X_train)/len(X)*100:.0f}%)")
+print(f"Test        : {len(X_test)} ({len(X_test)/len(X)*100:.0f}%)")
+print(f"X_train shape: {X_train.shape}")
+print(f"y_train shape: {y_train.shape}")`,
+  exercisePrompt:`Génère <strong>X</strong> (500 obs, 7 features) et <strong>y</strong>. Divise en 80/20 avec <code>random_state=42</code>. Affiche les shapes et vérifie que <code>X_train.shape[0] + X_test.shape[0] == 500</code>.`,
+  starter:`import numpy as np
+from sklearn.model_selection import train_test_split
+
+np.random.seed(42)
+X = np.random.randn(500, 7)
+y = X.sum(axis=1) + np.random.randn(500)
+
+# Divise en 80/20
+X_train, X_test, y_train, y_test = # TODO
+
+print(f"X_train: {X_train.shape}")
+print(f"X_test:  {X_test.shape}")
+print(f"y_train: {y_train.shape}")
+
+total = # TODO
+print(f"Total = {total} == 500 : {total == 500}")`,
+  hint:`<code>train_test_split(X, y, test_size=0.2, random_state=42)</code> retourne 4 tableaux. Total: <code>X_train.shape[0] + X_test.shape[0]</code>`,
+  solution:`import numpy as np
+from sklearn.model_selection import train_test_split
+
+np.random.seed(42)
+X = np.random.randn(500, 7)
+y = X.sum(axis=1) + np.random.randn(500)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+print(f"X_train: {X_train.shape}")
+print(f"X_test:  {X_test.shape}")
+print(f"y_train: {y_train.shape}")
+
+total = X_train.shape[0] + X_test.shape[0]
+print(f"Total = {total} == 500 : {total == 500}")`
+},
+{
+  module:"Module 4 · Scikit-learn",
+  title:"Régression Linéaire",
+  runnable:true,
+  concept:`<p>Trois étapes avec sklearn :</p>
+<ol style="margin:8px 0 8px 20px;line-height:2">
+<li><code>lr = LinearRegression()</code> — crée le modèle</li>
+<li><code>lr.fit(X_train, y_train)</code> — entraîne sur les données</li>
+<li><code>lr.predict(X_test)</code> — fait des prédictions</li>
+</ol>
+<p>Le MSE <strong>in-sample</strong> (train) est toujours plus bas qu'<strong>out-of-sample</strong> (test) : le modèle a appris sur ces données, donc il les prédit mieux.</p>`,
+  example:`import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+np.random.seed(42)
+X = np.random.randn(200, 7)
+beta = np.array([1.5, -0.8, 2.0, 0.5, -1.2, 0.7, 1.1])
+y = X @ beta + np.random.randn(200) * 0.5
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Les 3 étapes
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+
+y_train_pred = lr.predict(X_train)
+y_test_pred  = lr.predict(X_test)
+
+mse_train = mean_squared_error(y_train, y_train_pred)
+mse_test  = mean_squared_error(y_test,  y_test_pred)
+
+print(f"MSE In-sample  (train): {mse_train:.4f}")
+print(f"MSE Out-sample (test):  {mse_test:.4f}")`,
+  exercisePrompt:`Sur un dataset (300 obs, 7 features), entraîne une régression linéaire. Affiche les MSE train et test. Le résultat doit montrer que MSE test > MSE train.`,
+  starter:`import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+np.random.seed(10)
+X = np.random.randn(300, 7)
+y = 2*X[:,0] - X[:,2] + 0.5*X[:,4] + np.random.randn(300)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Crée le modèle
+lr = # TODO
+
+# Entraîne
+# TODO
+
+# Prédis sur train ET test
+y_train_pred = # TODO
+y_test_pred  = # TODO
+
+# Calcule MSE
+mse_train = mean_squared_error(# TODO)
+mse_test  = mean_squared_error(# TODO)
+
+print(f"MSE In-sample  (train): {mse_train:.4f}")
+print(f"MSE Out-sample (test):  {mse_test:.4f}")`,
+  hint:`<code>lr = LinearRegression()</code> → <code>lr.fit(X_train, y_train)</code> → <code>lr.predict(X_train)</code>. MSE: <code>mean_squared_error(y_vrai, y_pred)</code>`,
+  solution:`import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+np.random.seed(10)
+X = np.random.randn(300, 7)
+y = 2*X[:,0] - X[:,2] + 0.5*X[:,4] + np.random.randn(300)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+
+y_train_pred = lr.predict(X_train)
+y_test_pred  = lr.predict(X_test)
+
+mse_train = mean_squared_error(y_train, y_train_pred)
+mse_test  = mean_squared_error(y_test,  y_test_pred)
+
+print(f"MSE In-sample  (train): {mse_train:.4f}")
+print(f"MSE Out-sample (test):  {mse_test:.4f}")`
+},
+{
+  module:"Module 4 · Scikit-learn",
+  title:"Ridge Regression",
+  runnable:true,
+  concept:`<p><code>Ridge(alpha=...)</code> ajoute une pénalité qui <strong>réduit l'overfitting</strong>. L'hyperparamètre <code>alpha</code> contrôle la force de régularisation :</p>
+<ul><li><strong>alpha petit</strong> → proche de la régression linéaire classique</li>
+<li><strong>alpha grand</strong> → coefficients très proches de 0 (sous-ajustement)</li></ul>
+<p>En examen, on teste plusieurs alphas : <code>[0.1, 1, 10]</code> et on choisit celui qui minimise le MSE test.</p>`,
+  example:`import numpy as np
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+np.random.seed(42)
+# Ridge utile quand beaucoup de features vs peu d'observations
+X = np.random.randn(100, 50)
+y = X[:, 0] + X[:, 1] + np.random.randn(100)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+print(f"{'alpha':>8} | {'MSE train':>10} | {'MSE test':>10}")
+print("-" * 35)
+for alpha in [0.01, 0.1, 1, 10, 100]:
+    ridge = Ridge(alpha=alpha)
+    ridge.fit(X_train, y_train)
+    mse_tr = mean_squared_error(y_train, ridge.predict(X_train))
+    mse_te = mean_squared_error(y_test,  ridge.predict(X_test))
+    print(f"{alpha:>8} | {mse_tr:>10.4f} | {mse_te:>10.4f}")`,
+  exercisePrompt:`Sur un dataset (200 obs, 30 features), teste les alphas <code>[0.001, 0.01, 0.1, 1, 10, 100, 1000]</code>. Stocke les résultats dans une liste et affiche le meilleur alpha (MSE test minimal).`,
+  starter:`import numpy as np
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+np.random.seed(42)
+X = np.random.randn(200, 30)
+y = X[:, :5].sum(axis=1) + np.random.randn(200) * 0.3
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+alphas = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+results = []
+
+for alpha in alphas:
+    ridge = # TODO
+    # TODO: entraîner
+    mse_test = # TODO
+    results.append({'alpha': alpha, 'mse_test': mse_test})
+    print(f"alpha={alpha:>8} → MSE test = {mse_test:.4f}")
+
+# Meilleur alpha
+best = min(results, key=lambda r: r['mse_test'])
+print(f"\n✓ Meilleur alpha: {best['alpha']} (MSE = {best['mse_test']:.4f})")`,
+  hint:`<code>ridge = Ridge(alpha=alpha)</code> puis <code>ridge.fit(X_train, y_train)</code>. Min: <code>min(results, key=lambda r: r['mse_test'])</code>`,
+  solution:`import numpy as np
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+np.random.seed(42)
+X = np.random.randn(200, 30)
+y = X[:, :5].sum(axis=1) + np.random.randn(200) * 0.3
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+alphas = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
+results = []
+
+for alpha in alphas:
+    ridge = Ridge(alpha=alpha)
+    ridge.fit(X_train, y_train)
+    mse_test = mean_squared_error(y_test, ridge.predict(X_test))
+    results.append({'alpha': alpha, 'mse_test': mse_test})
+    print(f"alpha={alpha:>8} → MSE test = {mse_test:.4f}")
+
+best = min(results, key=lambda r: r['mse_test'])
+print(f"\n✓ Meilleur alpha: {best['alpha']} (MSE = {best['mse_test']:.4f})")`
+},
+{
+  module:"Module 4 · Scikit-learn",
+  title:"Tableau de Résultats (DataFrame + Pivot)",
+  runnable:true,
+  concept:`<p>En examen, on stocke les résultats dans une liste de dicts, puis on crée un DataFrame et on utilise <code>.pivot()</code> pour afficher un tableau croisé.</p>
+<p>Pattern exact de l'examen :</p>
+<pre style="background:#0d1117;border-radius:6px;padding:10px;font-size:.78rem;color:#d4e4bc;overflow-x:auto">results.append({'k': k, 'alpha': alpha, 'mse_train': ..., 'mse_test': ...})
+results_df = pd.DataFrame(results)
+results_df.pivot(index='k', columns='alpha', values=['mse_train', 'mse_test'])</pre>`,
+  example:`import pandas as pd
+import numpy as np
+
+# Simuler les résultats (pattern exact de l'examen)
+ks = [1, 10, 50, 100]
+alphas = [0.1, 1, 10]
+results = []
+
+np.random.seed(42)
+for k in ks:
+    for alpha in alphas:
+        results.append({
+            'k': k,
+            'alpha': alpha,
+            'mse_train': max(0.05, 1.0 - k*0.002 + np.random.randn()*0.02),
+            'mse_test':  max(0.1,  1.2 - k*0.001 + alpha*0.01 + np.random.randn()*0.03)
+        })
+
+results_df = pd.DataFrame(results)
+print("Tableau pivot - MSE test:")
+print(results_df.pivot(index='k', columns='alpha', values='mse_test').round(3))
+print("\nTableau pivot complet:")
+print(results_df.pivot(index='k', columns='alpha', values=['mse_train', 'mse_test']).round(3))`,
+  exercisePrompt:`Crée une liste de résultats pour <code>ks = [1, 10, 100]</code> et <code>alphas = [0.1, 1, 10]</code>. Utilise <code>mse_test = k * 0.005 + alpha * 0.002</code>. Affiche le pivot sur <code>mse_test</code>.`,
+  starter:`import pandas as pd
+
+ks = [1, 10, 100]
+alphas = [0.1, 1, 10]
+results = []
+
+for k in ks:
+    for alpha in alphas:
+        mse_test = k * 0.005 + alpha * 0.002
+        results.append({
+            'k': # TODO,
+            'alpha': # TODO,
+            'mse_test': # TODO
+        })
+
+results_df = # TODO
+
+print("Pivot mse_test:")
+print(# TODO)`,
+  hint:`Le dict doit avoir les clés 'k', 'alpha', 'mse_test'. Puis <code>pd.DataFrame(results)</code>. Le pivot: <code>.pivot(index='k', columns='alpha', values='mse_test')</code>`,
+  solution:`import pandas as pd
+
+ks = [1, 10, 100]
+alphas = [0.1, 1, 10]
+results = []
+
+for k in ks:
+    for alpha in alphas:
+        mse_test = k * 0.005 + alpha * 0.002
+        results.append({'k': k, 'alpha': alpha, 'mse_test': mse_test})
+
+results_df = pd.DataFrame(results)
+
+print("Pivot mse_test:")
+print(results_df.pivot(index='k', columns='alpha', values='mse_test').round(4))`
+},
+{
+  module:"Module 5 · Visualisation",
+  title:"Scatter Plot et Boxplot",
+  runnable:true,
+  concept:`<p><code>ax.scatter(x, y)</code> crée un nuage de points. Pour visualiser les prédictions vs vraies valeurs, on trace aussi la ligne <strong>y=x</strong> (prédiction parfaite) en rouge pointillé.</p>
+<p><code>ax.boxplot(data[col])</code> crée une boîte à moustaches — utile pour détecter les outliers (requis en Exercice 2 de l'examen).</p>
+<div class="ibox blue">💡 L'interface capture automatiquement les graphiques — pas besoin de plt.show().</div>`,
+  example:`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+y_true = np.random.randn(100)
+y_pred = y_true * 0.8 + np.random.randn(100) * 0.4
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+
+# Scatter: true vs predicted
+ax1.scatter(y_true, y_pred, alpha=0.5, s=25, color='steelblue')
+mn, mx = y_true.min(), y_true.max()
+ax1.plot([mn, mx], [mn, mx], 'r--', lw=2, label='Parfait')
+ax1.set_xlabel('Vraie valeur')
+ax1.set_ylabel('Prédiction')
+ax1.set_title('True vs Predicted')
+ax1.legend()
+
+# Boxplot
+data = [np.random.randn(50) * s for s in [0.5, 1.5, 1.0]]
+ax2.boxplot(data, labels=['A', 'B', 'C'])
+ax2.set_title('Distribution par groupe')
+ax2.set_ylabel('Valeur')
+
+plt.tight_layout()`,
+  exercisePrompt:`Génère <code>y_true = np.linspace(-3, 3, 80)</code> et <code>y_pred = y_true + np.random.randn(80)*0.5</code>. Crée un scatter plot avec une ligne rouge y=x, un titre et des labels d'axes.`,
+  starter:`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+y_true = np.linspace(-3, 3, 80)
+y_pred = y_true + np.random.randn(80) * 0.5
+
+fig, ax = plt.subplots(figsize=(6, 5))
+
+# Scatter
+ax.scatter(# TODO)
+
+# Ligne y=x (prédiction parfaite)
+ax.plot(# TODO)
+
+ax.set_xlabel(# TODO)
+ax.set_ylabel(# TODO)
+ax.set_title(# TODO)
+ax.legend()
+plt.tight_layout()`,
+  hint:`<code>ax.scatter(y_true, y_pred, alpha=0.6, s=30)</code>. La ligne: <code>ax.plot([y_true.min(), y_true.max()], [y_true.min(), y_true.max()], 'r--', lw=2)</code>`,
+  solution:`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+y_true = np.linspace(-3, 3, 80)
+y_pred = y_true + np.random.randn(80) * 0.5
+
+fig, ax = plt.subplots(figsize=(6, 5))
+
+ax.scatter(y_true, y_pred, alpha=0.6, s=30, color='steelblue')
+
+ax.plot([y_true.min(), y_true.max()],
+        [y_true.min(), y_true.max()],
+        'r--', lw=2, label='Parfait')
+
+ax.set_xlabel('Vraie valeur')
+ax.set_ylabel('Prédiction')
+ax.set_title('Prédictions vs Vraies Valeurs')
+ax.legend()
+plt.tight_layout()`
+},
+{
+  module:"Module 5 · Visualisation",
+  title:"Heatmap (imshow)",
+  runnable:true,
+  concept:`<p>Une <strong>heatmap</strong> représente une matrice par des couleurs. Étapes :</p>
+<ol style="margin:8px 0 8px 20px;line-height:2">
+<li><code>pivot_df = results_df.pivot(index='k', columns='alpha', values='mse_test')</code></li>
+<li><code>cax = ax.imshow(pivot_df.values, aspect='auto')</code></li>
+<li>Étiqueter les axes avec <code>ax.set_xticks</code> / <code>ax.set_yticks</code></li>
+<li>Annoter chaque cellule avec <code>ax.text(j, i, valeur)</code></li>
+<li>Ajouter <code>fig.colorbar(cax, ax=ax)</code></li>
+</ol>`,
+  example:`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Simuler les résultats (comme dans l'examen)
+ks = [1, 10, 100, 1000]
+alphas = [0.1, 1, 10]
+np.random.seed(42)
+results = [{'k':k,'alpha':a,'mse_test':max(0.1, 1-k*0.0005+a*0.02+np.random.randn()*0.03)}
+           for k in ks for a in alphas]
+
+pivot = pd.DataFrame(results).pivot(index='k', columns='alpha', values='mse_test')
+
+fig, ax = plt.subplots(figsize=(6, 5))
+cax = ax.imshow(pivot.values, aspect='auto', cmap='YlOrRd_r')
+
+ax.set_xticks(range(len(pivot.columns)))
+ax.set_xticklabels(pivot.columns)
+ax.set_yticks(range(len(pivot.index)))
+ax.set_yticklabels(pivot.index)
+ax.set_xlabel('Alpha')
+ax.set_ylabel('k (random features)')
+ax.set_title('MSE Test Heatmap')
+
+for i in range(pivot.shape[0]):
+    for j in range(pivot.shape[1]):
+        ax.text(j, i, f"{pivot.values[i,j]:.3f}",
+                ha='center', va='center', fontsize=9)
+
+fig.colorbar(cax, ax=ax, label='MSE test')
+plt.tight_layout()`,
+  exercisePrompt:`Crée une heatmap 4×3 à partir d'une matrice de données aléatoires. Annote chaque cellule avec la valeur à 2 décimales. Ajoute un titre et une colorbar.`,
+  starter:`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+np.random.seed(0)
+data = np.random.rand(4, 3)  # 4 lignes, 3 colonnes
+
+fig, ax = plt.subplots(figsize=(5, 4))
+
+# Heatmap
+cax = # TODO
+
+# Annoter chaque cellule
+for i in range(data.shape[0]):
+    for j in range(data.shape[1]):
+        ax.text(j, i, f"{data[i,j]:.2f}",
+                ha='center', va='center', fontsize=10)
+
+# Colorbar
+fig.colorbar(# TODO)
+
+ax.set_title(# TODO)
+plt.tight_layout()`,
+  hint:`<code>ax.imshow(data, aspect='auto')</code>. Colorbar: <code>fig.colorbar(cax, ax=ax)</code>. Annotations: <code>ax.text(j, i, f"{data[i,j]:.2f}", ha='center', va='center')</code>`,
+  solution:`import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+np.random.seed(0)
+data = np.random.rand(4, 3)
+
+fig, ax = plt.subplots(figsize=(5, 4))
+
+cax = ax.imshow(data, aspect='auto')
+
+for i in range(data.shape[0]):
+    for j in range(data.shape[1]):
+        ax.text(j, i, f"{data[i,j]:.2f}",
+                ha='center', va='center', fontsize=10)
+
+fig.colorbar(cax, ax=ax)
+ax.set_title('Ma Heatmap')
+plt.tight_layout()`
+},
+{
+  module:"Module 6 · Examen",
+  title:"Exercice 1 — Features Aléatoires (Guidé)",
+  runnable:true,
+  concept:`<div class="ibox red">🎯 <strong>Exercice type examen.</strong> Cet exercice reproduit exactement la structure de l'Exercice 1 du mock exam. Complète les TODO un par un.</div>
+<p>Le principe : générer des <strong>features aléatoires</strong> (projections non-linéaires) pour enrichir les données, puis entraîner une Ridge Regression sur ces features augmentées.</p>`,
+  example:`# Voici la solution complète pour référence
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import LinearRegression, Ridge
+
+np.random.seed(42)
+
+# Données synthétiques (structure identique au CSV de l'examen)
+n = 400
+X_all = np.random.randn(n, 7)
+beta = np.array([1.5, -0.8, 2.0, 0.5, -1.2, 0.7, 1.1])
+y_all = X_all @ beta + np.random.randn(n) * 0.5
+
+# Tâche 2: Split 80/20
+X_train, X_test, y_train, y_test = train_test_split(
+    X_all, y_all, test_size=0.2, random_state=42)
+
+# Tâche 3: Régression linéaire de base
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+mse_train_lr = mean_squared_error(y_train, lr.predict(X_train))
+mse_test_lr  = mean_squared_error(y_test,  lr.predict(X_test))
+print(f"LinearReg - Train MSE: {mse_train_lr:.4f}, Test MSE: {mse_test_lr:.4f}")
+
+# Tâches 4&5: Random Features + Ridge
+def relu(x):
+    return np.maximum(0, x)
+
+ks = [1, 10, 20, 50, 100]
+alphas = [0.1, 1, 10]
+results = []
+
+for k in ks:
+    W = np.random.randn(X_train.shape[1], k)
+    X_train_aug = np.hstack([X_train, relu(X_train @ W)])
+    X_test_aug  = np.hstack([X_test,  relu(X_test  @ W)])
+    for alpha in alphas:
+        ridge = Ridge(alpha=alpha)
+        ridge.fit(X_train_aug, y_train)
+        results.append({'k': k, 'alpha': alpha,
+            'mse_train': mean_squared_error(y_train, ridge.predict(X_train_aug)),
+            'mse_test':  mean_squared_error(y_test,  ridge.predict(X_test_aug))})
+
+results_df = pd.DataFrame(results)
+pivot = results_df.pivot(index='k', columns='alpha', values='mse_test')
+print("\nMSE test:")
+print(pivot.round(4))
+
+# Tâche 6: Heatmap
+fig, ax = plt.subplots(figsize=(6, 4))
+cax = ax.imshow(pivot.values, aspect='auto', cmap='YlOrRd_r')
+ax.set_xticks(range(len(pivot.columns))); ax.set_xticklabels(pivot.columns)
+ax.set_yticks(range(len(pivot.index)));   ax.set_yticklabels(pivot.index)
+ax.set_xlabel('Alpha'); ax.set_ylabel('k'); ax.set_title('Test MSE Heatmap')
+for i in range(pivot.shape[0]):
+    for j in range(pivot.shape[1]):
+        ax.text(j, i, f"{pivot.values[i,j]:.3f}", ha='center', va='center', fontsize=8)
+fig.colorbar(cax, ax=ax)
+plt.tight_layout()`,
+  exercisePrompt:`<strong>À toi !</strong> Complète les TODO dans le squelette de l'exercice. C'est exactement le code que tu devras écrire à l'examen.`,
+  starter:`import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import LinearRegression, Ridge
+
+np.random.seed(42)
+
+# Tâche 1: Charger les données
+# (En examen: df = pd.read_csv('data/exercise1.csv'))
+n = 400
+X_all = np.random.randn(n, 7)
+y_all = np.sin(X_all.sum(axis=1)) + np.random.randn(n) * 0.3
+
+# Tâche 2: Split train/test
+X_train, X_test, y_train, y_test = train_test_split(
+    # TODO
+)
+
+# Tâche 3: Régression linéaire sur 7 features
+lr = # TODO
+# TODO: entraîner
+y_train_pred_lr = # TODO
+y_test_pred_lr  = # TODO
+
+mse_train_lr = mean_squared_error(y_train, y_train_pred_lr)
+mse_test_lr  = mean_squared_error(y_test,  y_test_pred_lr)
+print(f"LinearReg - Train: {mse_train_lr:.4f}, Test: {mse_test_lr:.4f}")
+
+# Tâches 4&5: Random Features + Ridge
+def relu(x):
+    return # TODO
+
+ks = [1, 10, 20, 50, 100]
+alphas = [0.1, 1, 10]
+results = []
+
+for k in ks:
+    W = # TODO  # poids aléatoires, shape (n_features, k)
+    X_train_aug = # TODO  # hstack features originales + random features
+    X_test_aug  = # TODO
+    for alpha in alphas:
+        ridge = # TODO
+        # TODO: entraîner
+        results.append({
+            'k': k, 'alpha': alpha,
+            'mse_train': mean_squared_error(y_train, ridge.predict(X_train_aug)),
+            'mse_test':  mean_squared_error(y_test,  ridge.predict(X_test_aug))
+        })
+
+results_df = pd.DataFrame(results)
+pivot = results_df.pivot(index='k', columns='alpha', values='mse_test')
+print("\nMSE test:"); print(pivot.round(4))
+
+# Tâche 6: Heatmap
+fig, ax = plt.subplots(figsize=(6, 4))
+cax = # TODO
+ax.set_xticks(range(len(pivot.columns))); ax.set_xticklabels(pivot.columns)
+ax.set_yticks(range(len(pivot.index)));   ax.set_yticklabels(pivot.index)
+ax.set_xlabel('Alpha'); ax.set_ylabel('k'); ax.set_title('Test MSE Heatmap')
+for i in range(pivot.shape[0]):
+    for j in range(pivot.shape[1]):
+        ax.text(j, i, f"{pivot.values[i,j]:.3f}", ha='center', va='center', fontsize=8)
+fig.colorbar(# TODO)
+plt.tight_layout()`,
+  hint:`Split: <code>train_test_split(X_all, y_all, test_size=0.2, random_state=42)</code>. ReLU: <code>np.maximum(0, x)</code>. Poids: <code>np.random.randn(X_train.shape[1], k)</code>. Augmentation: <code>np.hstack([X_train, relu(X_train @ W)])</code>`,
+  solution:`import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import LinearRegression, Ridge
+
+np.random.seed(42)
+
+n = 400
+X_all = np.random.randn(n, 7)
+y_all = np.sin(X_all.sum(axis=1)) + np.random.randn(n) * 0.3
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_all, y_all, test_size=0.2, random_state=42)
+
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+y_train_pred_lr = lr.predict(X_train)
+y_test_pred_lr  = lr.predict(X_test)
+
+mse_train_lr = mean_squared_error(y_train, y_train_pred_lr)
+mse_test_lr  = mean_squared_error(y_test,  y_test_pred_lr)
+print(f"LinearReg - Train: {mse_train_lr:.4f}, Test: {mse_test_lr:.4f}")
+
+def relu(x):
+    return np.maximum(0, x)
+
+ks = [1, 10, 20, 50, 100]
+alphas = [0.1, 1, 10]
+results = []
+
+for k in ks:
+    W = np.random.randn(X_train.shape[1], k)
+    X_train_aug = np.hstack([X_train, relu(X_train @ W)])
+    X_test_aug  = np.hstack([X_test,  relu(X_test  @ W)])
+    for alpha in alphas:
+        ridge = Ridge(alpha=alpha)
+        ridge.fit(X_train_aug, y_train)
+        results.append({'k': k, 'alpha': alpha,
+            'mse_train': mean_squared_error(y_train, ridge.predict(X_train_aug)),
+            'mse_test':  mean_squared_error(y_test,  ridge.predict(X_test_aug))})
+
+results_df = pd.DataFrame(results)
+pivot = results_df.pivot(index='k', columns='alpha', values='mse_test')
+print("\nMSE test:"); print(pivot.round(4))
+
+fig, ax = plt.subplots(figsize=(6, 4))
+cax = ax.imshow(pivot.values, aspect='auto', cmap='YlOrRd_r')
+ax.set_xticks(range(len(pivot.columns))); ax.set_xticklabels(pivot.columns)
+ax.set_yticks(range(len(pivot.index)));   ax.set_yticklabels(pivot.index)
+ax.set_xlabel('Alpha'); ax.set_ylabel('k'); ax.set_title('Test MSE Heatmap')
+for i in range(pivot.shape[0]):
+    for j in range(pivot.shape[1]):
+        ax.text(j, i, f"{pivot.values[i,j]:.3f}", ha='center', va='center', fontsize=8)
+fig.colorbar(cax, ax=ax)
+plt.tight_layout()`
+},
+{
+  module:"Module 7 · PyTorch",
+  title:"Tenseurs et DataLoader",
+  runnable:false,
+  concept:`<div class="ibox yellow">⚠️ PyTorch ne fonctionne pas dans ce navigateur. Ce code est à exécuter dans ton terminal. Utilise le bouton <strong>Copier</strong>.</div>
+<p><strong>PyTorch</strong> est la bibliothèque de deep learning. Les <strong>tenseurs</strong> sont comme des tableaux NumPy mais permettent le calcul de gradients automatique.</p>
+<table class="ktable">
+<tr><th>Concept</th><th>Code</th></tr>
+<tr><td>Array NumPy → Tenseur</td><td><code>torch.from_numpy(arr)</code></td></tr>
+<tr><td>Dataset PyTorch</td><td><code>TensorDataset(X_tensor, y_tensor)</code></td></tr>
+<tr><td>Chargeur de données</td><td><code>DataLoader(dataset, batch_size=256, shuffle=True)</code></td></tr>
+</table>`,
+  example:`import torch
+import numpy as np
+from torch.utils.data import TensorDataset, DataLoader
+from sklearn.model_selection import train_test_split
+
+# Données numpy → tenseurs PyTorch
+X = np.random.randn(500, 9).astype(np.float32)
+y = np.random.randn(500, 1).astype(np.float32)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Convertir en tenseurs
+X_train_t = torch.from_numpy(X_train)
+y_train_t = torch.from_numpy(y_train)
+X_test_t  = torch.from_numpy(X_test)
+y_test_t  = torch.from_numpy(y_test)
+
+# Créer les datasets et DataLoaders
+batch_size = 256
+train_dataset = TensorDataset(X_train_t, y_train_t)
+test_dataset  = TensorDataset(X_test_t,  y_test_t)
+
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_loader  = DataLoader(test_dataset,  batch_size=batch_size)
+
+print(f"Batches par epoch: {len(train_loader)}")
+
+# Itérer sur un batch
+for xb, yb in train_loader:
+    print(f"Batch shape: X={xb.shape}, y={yb.shape}")
+    break`,
+  exercisePrompt:`Ce code est à copier et exécuter dans ton terminal. Lis-le attentivement en suivant les annotations.`,
+  starter:`# EXERCICE: complète les TODO dans ton terminal
+
+import torch
+import numpy as np
+from torch.utils.data import TensorDataset, DataLoader
+from sklearn.model_selection import train_test_split
+
+# Données
+X = np.random.randn(300, 9).astype(np.float32)
+y = np.random.randn(300, 1).astype(np.float32)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# TODO: Convertir X_train en tenseur PyTorch
+X_train_t = torch.from_numpy(X_train)
+
+# TODO: Convertir y_train en tenseur PyTorch
+y_train_t = # TODO
+
+# TODO: Créer un TensorDataset pour train
+train_dataset = TensorDataset(# TODO)
+
+# TODO: Créer un DataLoader avec batch_size=64
+train_loader = DataLoader(# TODO, batch_size=64, shuffle=True)
+
+print(f"Dataset size: {len(train_dataset)}")
+print(f"Nombre de batches: {len(train_loader)}")`,
+  hint:`<code>y_train_t = torch.from_numpy(y_train)</code>. TensorDataset: <code>TensorDataset(X_train_t, y_train_t)</code>. DataLoader: <code>DataLoader(train_dataset, batch_size=64, shuffle=True)</code>`,
+  solution:`import torch
+import numpy as np
+from torch.utils.data import TensorDataset, DataLoader
+from sklearn.model_selection import train_test_split
+
+X = np.random.randn(300, 9).astype(np.float32)
+y = np.random.randn(300, 1).astype(np.float32)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+X_train_t = torch.from_numpy(X_train)
+y_train_t = torch.from_numpy(y_train)
+
+train_dataset = TensorDataset(X_train_t, y_train_t)
+train_loader  = DataLoader(train_dataset, batch_size=64, shuffle=True)
+
+print(f"Dataset size: {len(train_dataset)}")
+print(f"Nombre de batches: {len(train_loader)}")`
+},
+{
+  module:"Module 7 · PyTorch",
+  title:"Définir un Modèle (nn.Module)",
+  runnable:false,
+  concept:`<p>En PyTorch, un modèle est une <strong>classe</strong> qui hérite de <code>nn.Module</code>. Elle a deux méthodes :</p>
+<ul>
+<li><code>__init__</code> : définit les couches (ex: <code>self.lin = nn.Linear(in, out)</code>)</li>
+<li><code>forward(x)</code> : décrit comment les données traversent le réseau</li>
+</ul>
+<p><code>nn.Linear(in_features, out_features)</code> = couche linéaire (régression linéaire). C'est exactement ce qui est utilisé dans l'Exercice 2 de l'examen.</p>`,
+  example:`import torch
+import torch.nn as nn
+
+# LinearReplicator: exactement le modèle de l'Exercice 2
+class LinearReplicator(nn.Module):
+    def __init__(self, in_features=9):
+        super().__init__()
+        # Une seule couche linéaire: in_features → 1 sortie
+        self.lin = nn.Linear(in_features, 1, bias=True)
+
+    def forward(self, x):
+        # x passe à travers la couche linéaire
+        return self.lin(x)
+
+# Instancier le modèle
+model = LinearReplicator(in_features=9)
+
+# Voir les paramètres
+for name, param in model.named_parameters():
+    print(f"{name}: shape={param.shape}")
+
+# Test forward pass
+x_test = torch.randn(5, 9)   # batch de 5 observations, 9 features
+out = model(x_test)
+print(f"\nInput shape: {x_test.shape}")
+print(f"Output shape: {out.shape}")   # (5, 1)`,
+  exercisePrompt:`Ce code est à copier et exécuter dans ton terminal. Lis les annotations.`,
+  starter:`import torch
+import torch.nn as nn
+
+# EXERCICE: Complète la classe
+
+class LinearReplicator(nn.Module):
+    def __init__(self, in_features=9):
+        super().__init__()
+        # TODO: définir la couche linéaire (in_features → 1 sortie, avec biais)
+        self.lin = # TODO
+
+    def forward(self, x):
+        # TODO: retourner le résultat de la couche
+        return # TODO
+
+# Test
+model = LinearReplicator(in_features=9)
+x = torch.randn(3, 9)
+out = model(x)
+print(f"Output shape: {out.shape}")  # doit être torch.Size([3, 1])`,
+  hint:`<code>self.lin = nn.Linear(in_features, 1, bias=True)</code>. Forward: <code>return self.lin(x)</code>`,
+  solution:`import torch
+import torch.nn as nn
+
+class LinearReplicator(nn.Module):
+    def __init__(self, in_features=9):
+        super().__init__()
+        self.lin = nn.Linear(in_features, 1, bias=True)
+
+    def forward(self, x):
+        return self.lin(x)
+
+model = LinearReplicator(in_features=9)
+x = torch.randn(3, 9)
+out = model(x)
+print(f"Output shape: {out.shape}")`
+},
+{
+  module:"Module 7 · PyTorch",
+  title:"La Boucle d'Entraînement",
+  runnable:false,
+  concept:`<p>La boucle d'entraînement PyTorch a <strong>5 étapes</strong> répétées à chaque batch :</p>
+<ol style="margin:8px 0 8px 20px;line-height:2.2">
+<li><code>optimizer.zero_grad()</code> — remet les gradients à zéro</li>
+<li><code>y_pred = model(xb)</code> — passe avant (forward pass)</li>
+<li><code>loss = criterion(y_pred, yb)</code> — calcule la perte</li>
+<li><code>loss.backward()</code> — calcule les gradients (rétropropagation)</li>
+<li><code>optimizer.step()</code> — met à jour les paramètres</li>
+</ol>
+<div class="ibox yellow">⚠️ <strong>Erreur fréquente :</strong> oublier <code>optimizer.zero_grad()</code> fait s'accumuler les gradients des batchs précédents.</div>`,
+  example:`import torch, torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader
+import numpy as np
+
+# Données
+X = torch.randn(400, 9)
+y = torch.randn(400, 1)
+loader = DataLoader(TensorDataset(X, y), batch_size=64, shuffle=True)
+
+# Modèle, loss, optimizer
+model = nn.Linear(9, 1)
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+
+n_epochs = 50
+
+for epoch in range(1, n_epochs + 1):
+    model.train()
+    epoch_loss = 0.0
+
+    for xb, yb in loader:
+        # 5 étapes obligatoires
+        optimizer.zero_grad()          # 1. Reset gradients
+        y_pred = model(xb)             # 2. Forward pass
+        loss = criterion(y_pred, yb)   # 3. Compute loss
+        loss.backward()                # 4. Backprop
+        optimizer.step()               # 5. Update weights
+        epoch_loss += loss.item() * xb.size(0)
+
+    epoch_loss /= len(loader.dataset)
+
+    if epoch == 1 or epoch % 10 == 0:
+        print(f"Epoch {epoch:3d} — Train MSE: {epoch_loss:.4f}")`,
+  exercisePrompt:`Ce code est à copier dans ton terminal. Memorise les 5 étapes de la boucle.`,
+  starter:`import torch, torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader
+
+X = torch.randn(300, 9)
+y = torch.randn(300, 1)
+loader = DataLoader(TensorDataset(X, y), batch_size=64, shuffle=True)
+
+model = nn.Linear(9, 1)
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+
+for epoch in range(1, 51):
+    model.train()
+    epoch_loss = 0.0
+    for xb, yb in loader:
+        # TODO 1: optimizer.zero_grad()
+        # TODO 2: y_pred = model(xb)
+        # TODO 3: loss = criterion(y_pred, yb)
+        # TODO 4: loss.backward()
+        # TODO 5: optimizer.step()
+        epoch_loss += loss.item() * xb.size(0)
+    epoch_loss /= len(loader.dataset)
+    if epoch % 10 == 0:
+        print(f"Epoch {epoch} — MSE: {epoch_loss:.4f}")`,
+  hint:`Les 5 étapes dans l'ordre: <code>zero_grad()</code> → <code>y_pred = model(xb)</code> → <code>loss = criterion(y_pred, yb)</code> → <code>loss.backward()</code> → <code>optimizer.step()</code>`,
+  solution:`import torch, torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader
+
+X = torch.randn(300, 9)
+y = torch.randn(300, 1)
+loader = DataLoader(TensorDataset(X, y), batch_size=64, shuffle=True)
+
+model = nn.Linear(9, 1)
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+
+for epoch in range(1, 51):
+    model.train()
+    epoch_loss = 0.0
+    for xb, yb in loader:
+        optimizer.zero_grad()
+        y_pred = model(xb)
+        loss = criterion(y_pred, yb)
+        loss.backward()
+        optimizer.step()
+        epoch_loss += loss.item() * xb.size(0)
+    epoch_loss /= len(loader.dataset)
+    if epoch % 10 == 0:
+        print(f"Epoch {epoch} — MSE: {epoch_loss:.4f}")`
+},
+{
+  module:"Module 7 · PyTorch",
+  title:"Exercice 2 — Solution Complète Annotée",
+  runnable:false,
+  concept:`<div class="ibox green">✅ Voici la solution complète et annotée de l'Exercice 2 du mock exam. Copie-la, exécute-la localement et assure-toi de comprendre chaque ligne.</div>`,
+  example:`import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+import matplotlib.pyplot as plt
+from torch.utils.data import TensorDataset, DataLoader
+from sklearn.model_selection import train_test_split
+
+torch.manual_seed(42)
+
+# ── Tâche 1: Charger les données ──────────────────────
+# data = pd.read_csv('data/exercise2.csv')
+# En exercice: X = toutes colonnes sauf target, y = colonne target
+
+# ── Tâche 2: Qualité des données ──────────────────────
+# number_of_nans = data.isna().sum().sum()
+# Boxplot de chaque colonne pour détecter les outliers
+
+# ── Tâche 3: Préparer les tenseurs ────────────────────
+# X, y = data.iloc[:, features], data.iloc[:, target]
+X_np = np.random.randn(500, 9).astype(np.float32)
+y_np = (X_np[:, :3].sum(axis=1, keepdims=True)).astype(np.float32)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_np, y_np, test_size=0.2, random_state=42)
+
+batch_size = 256
+train_loader = DataLoader(
+    TensorDataset(torch.from_numpy(X_train), torch.from_numpy(y_train)),
+    batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(
+    TensorDataset(torch.from_numpy(X_test), torch.from_numpy(y_test)),
+    batch_size=batch_size)
+
+# ── Tâche 4: Définir le modèle ────────────────────────
+class LinearReplicator(nn.Module):
+    def __init__(self, in_features=9):
+        super().__init__()
+        self.lin = nn.Linear(in_features, 1, bias=True)  # poids + biais
+    def forward(self, x):
+        return self.lin(x)
+
+model = LinearReplicator(in_features=X_train.shape[1])
+criterion = nn.MSELoss()                           # perte MSE
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+n_epochs = 200
+
+# ── Tâche 4: Boucle d'entraînement ────────────────────
+for epoch in range(1, n_epochs + 1):
+    model.train()
+    epoch_loss = 0.0
+    for xb, yb in train_loader:
+        optimizer.zero_grad()     # 1. reset gradients
+        y_pred = model(xb)        # 2. forward
+        loss = criterion(y_pred, yb)  # 3. loss
+        loss.backward()           # 4. backprop
+        optimizer.step()          # 5. update
+        epoch_loss += loss.item() * xb.size(0)
+    epoch_loss /= len(train_loader.dataset)
+    if epoch == 1 or epoch % 50 == 0:
+        print(f"Epoch {epoch:3d} — Train MSE: {epoch_loss:.4f}")
+
+# ── Tâche 5: Évaluation et scatter plot ───────────────
+model.eval()
+with torch.no_grad():
+    all_preds, all_targets = [], []
+    for xb, yb in test_loader:
+        all_preds.append(model(xb))
+        all_targets.append(yb)
+    y_hat  = torch.vstack(all_preds)
+    y_true = torch.vstack(all_targets)
+
+mse_test = criterion(y_hat, y_true).item()
+print(f"\\nTest MSE: {mse_test:.4f}")
+
+# Scatter: true vs predicted
+plt.figure(figsize=(6, 6))
+plt.scatter(y_true.numpy(), y_hat.numpy(), alpha=0.4, s=15)
+plt.plot([y_true.min(), y_true.max()], [y_true.min(), y_true.max()], 'r--', lw=2)
+plt.xlabel('True y'); plt.ylabel('Predicted y')
+plt.title('Exercice 2: True vs Predicted')
+plt.tight_layout(); plt.show()`,
+  exercisePrompt:`Copie ce code dans ton terminal et exécute-le. Assure-toi de comprendre chaque section marquée ──.`,
+  starter:`# Pas d'exercice interactif pour cette leçon.
+# Copie le code exemple dans ton terminal (Python + PyTorch installés).
+#
+# Pour installer PyTorch localement:
+#   pip install torch torchvision
+#
+# Pour l'examen réel, le fichier de données sera:
+#   data = pd.read_csv('data/exercise2.csv')
+print("Copie le code de l'exemple dans ton terminal !")`,
+  hint:`Installe PyTorch avec <code>pip install torch</code>. Puis copie le code depuis l'exemple ci-dessus.`,
+  solution:`# La solution complète est dans le panneau 'Exemple' ci-dessus.
+# Copie-la dans ton terminal et remplace les données synthétiques
+# par le vrai CSV : data = pd.read_csv('data/exercise2.csv')`
+}
+];
+
+// ─── APP STATE ─────────────────────────────────────────────────────────────────
+const state = {
+  current: 0,
+  pyodide: null,
+  editors: {},
+  completed: new Set(JSON.parse(localStorage.getItem('ml_exam_v2') || '[]'))
+};
+
+// ─── PYODIDE INIT ──────────────────────────────────────────────────────────────
+async function initPyodide() {
+  const fill = id => (pct, msg) => {
+    document.getElementById('lfill').style.width = pct + '%';
+    document.getElementById('lstatus').textContent = msg;
+  };
+  const upd = fill();
+  upd(5, 'Chargement de Python (Pyodide)...');
+  state.pyodide = await loadPyodide();
+  upd(35, 'Chargement de NumPy...');
+  await state.pyodide.loadPackage('numpy');
+  upd(55, 'Chargement de Pandas...');
+  await state.pyodide.loadPackage('pandas');
+  upd(72, 'Chargement de Scikit-learn...');
+  await state.pyodide.loadPackage('scikit-learn');
+  upd(88, 'Chargement de Matplotlib...');
+  await state.pyodide.loadPackage('matplotlib');
+  state.pyodide.runPython(`import matplotlib; matplotlib.use('Agg')`);
+  upd(100, 'Prêt !');
+  await new Promise(r => setTimeout(r, 600));
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  buildSidebar();
+  renderLesson(0);
+}
+
+// ─── SIDEBAR ───────────────────────────────────────────────────────────────────
+function buildSidebar() {
+  const sb = document.getElementById('sidebar');
+  let html = '';
+  let lastMod = '';
+  LESSONS.forEach((l, i) => {
+    if (l.module !== lastMod) {
+      html += `<div class="mhdr">${l.module}</div>`;
+      lastMod = l.module;
+    }
+    const done = state.completed.has(i) ? 'done' : '';
+    const act  = i === state.current ? 'act' : '';
+    html += `<div class="li ${act} ${done}" onclick="goTo(${i})">
+      <div class="ldot"></div>
+      <div class="lname">${l.title}</div>
+    </div>`;
+  });
+  sb.innerHTML = html;
+}
+
+function updateSidebar() {
+  document.querySelectorAll('.li').forEach((el, i) => {
+    el.className = 'li' + (i===state.current?' act':'') + (state.completed.has(i)?' done':'');
+  });
+  const pct = Math.round(state.completed.size / LESSONS.length * 100);
+  document.getElementById('pfill').style.width = pct + '%';
+  document.getElementById('hprogtext').textContent = `${state.completed.size} / ${LESSONS.length}`;
+}
+
+// ─── RENDER LESSON ─────────────────────────────────────────────────────────────
+function renderLesson(idx) {
+  state.current = idx;
+  state.editors = {};
+  const l = LESSONS[idx];
+  const isLast = idx === LESSONS.length - 1;
+  const isFirst = idx === 0;
+
+  const pytorchNote = !l.runnable ? `
+    <div class="ibox yellow" style="margin-bottom:12px">
+      ⚠️ <strong>Code PyTorch — à exécuter localement</strong><br>
+      Copie le code dans ton terminal (pas dans ce navigateur).
+    </div>` : '';
+
+  const btnRun = (key) => l.runnable
+    ? `<button class="btn brun" id="btn_run_${key}" onclick="runCode('${key}')">▶ Exécuter</button>`
+    : `<button class="btn bcopy" onclick="copyCode('${key}')">📋 Copier le code</button>`;
+
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div class="card">
+      <div class="ctag">
+        ${l.module}
+        ${!l.runnable ? '<span class="badge bpytorch">PyTorch</span>' : ''}
+        ${idx >= 12 && idx <= 13 ? '<span class="badge bexam">Examen</span>' : ''}
+      </div>
+      <div class="ltitle">${l.title}</div>
+    </div>
+
+    <div class="card">
+      <div class="ctag">📖 Concept</div>
+      <div class="ctext">${l.concept}</div>
+    </div>
+
+    ${pytorchNote}
+
+    <div class="card">
+      <div class="ctag">💻 Exemple</div>
+      <div class="ewrap">
+        <div class="eheader">
+          <span class="elabel">Python</span>
+          ${btnRun('ex')}
+        </div>
+        <textarea id="ta_ex">${l.example}</textarea>
+      </div>
+      ${l.runnable ? `
+        <div class="out" id="out_ex">Clique sur ▶ Exécuter pour voir le résultat.</div>
+        <img class="oimg" id="img_ex" />
+      ` : ''}
+    </div>
+
+    <div class="card">
+      <div class="ctag">🎯 À toi !</div>
+      <div class="eprompt">${l.exercisePrompt}</div>
+      <div class="ewrap">
+        <div class="eheader">
+          <span class="elabel">Python</span>
+          ${btnRun('ex2')}
+        </div>
+        <textarea id="ta_ex2">${l.starter}</textarea>
+      </div>
+      ${l.runnable ? `
+        <div class="bgrp">
+          <button class="btn bhint" onclick="toggle('hpanel')">💡 Indice</button>
+          <button class="btn bsol" onclick="toggle('spanel')">✅ Solution</button>
+        </div>
+        <div class="out" id="out_ex2">Écris ton code et clique sur ▶ Exécuter.</div>
+        <img class="oimg" id="img_ex2" />
+        <div class="hpanel" id="hpanel">${l.hint}</div>
+        <div class="spanel" id="spanel">
+          <strong>Solution :</strong>
+          <pre>${escHtml(l.solution)}</pre>
+        </div>
+      ` : `
+        <div class="bgrp">
+          <button class="btn bhint" onclick="toggle('hpanel')">💡 Indice</button>
+          <button class="btn bsol" onclick="toggle('spanel')">✅ Solution</button>
+        </div>
+        <div class="hpanel" id="hpanel">${l.hint}</div>
+        <div class="spanel" id="spanel">
+          <strong>Solution :</strong>
+          <pre>${escHtml(l.solution)}</pre>
+        </div>
+      `}
+    </div>
+
+    <div class="nfooter">
+      <button class="btn bnav" onclick="goTo(${idx-1})" ${isFirst?'disabled':''}>← Précédent</button>
+      <button class="btn bnav bsol" onclick="markDone(${idx})">✓ Marquer comme fait</button>
+      <button class="btn bnav pri" onclick="goTo(${idx+1})" ${isLast?'disabled':''}>Suivant →</button>
+    </div>
+  `;
+
+  // Init CodeMirror
+  ['ex','ex2'].forEach(key => {
+    const ta = document.getElementById(`ta_${key}`);
+    if (!ta) return;
+    const cm = CodeMirror.fromTextArea(ta, {
+      mode: 'python',
+      theme: 'dracula',
+      lineNumbers: true,
+      indentUnit: 4,
+      indentWithTabs: false,
+      readOnly: (!l.runnable && key === 'ex'),
+      lineWrapping: false,
+      extraKeys: {"Ctrl-Enter": () => l.runnable && runCode(key), "Cmd-Enter": () => l.runnable && runCode(key)}
+    });
+    state.editors[key] = cm;
+  });
+
+  content.scrollTop = 0;
+  updateSidebar();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── RUN CODE ──────────────────────────────────────────────────────────────────
+async function runCode(key) {
+  const editor = state.editors[key];
+  if (!editor) return;
+  const code = editor.getValue();
+  const outEl = document.getElementById(`out_${key}`);
+  const imgEl = document.getElementById(`img_${key}`);
+  const btn   = document.getElementById(`btn_run_${key}`);
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Exécution...';
+  outEl.className = 'out';
+  outEl.textContent = '';
+  if (imgEl) { imgEl.style.display = 'none'; imgEl.src = ''; }
+
+  try {
+    await state.pyodide.loadPackagesFromImports(code);
+  } catch(_) {}
+
+  state.pyodide.runPython(`
+import sys as _sys_, io as _io_
+_sys_.stdout = _io_.StringIO()
+`);
+
+  let hasError = false;
+  try {
+    state.pyodide.runPython(code);
+  } catch(e) {
+    hasError = true;
+    try { state.pyodide.runPython(`_sys_.stdout = _sys_.__stdout__`); } catch(_) {}
+    outEl.textContent = `❌ Erreur :\n${e.message}`;
+    outEl.className = 'out err';
+    btn.disabled = false;
+    btn.innerHTML = '▶ Exécuter';
+    return;
+  }
+
+  try {
+    const captured = state.pyodide.runPython(`
+_r_ = _sys_.stdout.getvalue()
+_sys_.stdout = _sys_.__stdout__
+_r_
+`);
+    outEl.textContent = captured || '✓ Exécuté (aucune sortie texte)';
+  } catch(e) {
+    state.pyodide.runPython(`import sys; sys.stdout = sys.__stdout__`);
+  }
+
+  if (imgEl) {
+    try {
+      const b64 = state.pyodide.runPython(`
+import matplotlib.pyplot as __plt__
+import io as __io__, base64 as __b64__
+__ns__ = __plt__.get_fignums()
+if __ns__:
+    __buf__ = __io__.BytesIO()
+    __plt__.figure(__ns__[-1]).savefig(__buf__, format='png', dpi=90, bbox_inches='tight')
+    __plt__.close('all')
+    __buf__.seek(0)
+    __b64__.b64encode(__buf__.read()).decode()
+else:
+    ''
+`);
+      if (b64) { imgEl.src = `data:image/png;base64,${b64}`; imgEl.style.display = 'block'; }
+    } catch(_) {}
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '▶ Exécuter';
+}
+
+// ─── COPY CODE ─────────────────────────────────────────────────────────────────
+function copyCode(key) {
+  const editor = state.editors[key];
+  if (!editor) return;
+  navigator.clipboard.writeText(editor.getValue()).then(() => {
+    const btn = document.querySelector(`button[onclick="copyCode('${key}')"]`);
+    if (btn) { btn.innerHTML = '✓ Copié !'; setTimeout(() => { btn.innerHTML = '📋 Copier le code'; }, 2000); }
+  });
+}
+
+// ─── TOGGLE PANELS ─────────────────────────────────────────────────────────────
+function toggle(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+// ─── NAVIGATION ────────────────────────────────────────────────────────────────
+function goTo(idx) {
+  if (idx < 0 || idx >= LESSONS.length) return;
+  renderLesson(idx);
+}
+
+function markDone(idx) {
+  state.completed.add(idx);
+  localStorage.setItem('ml_exam_v2', JSON.stringify([...state.completed]));
+  updateSidebar();
+  const btn = document.querySelector(`button[onclick="markDone(${idx})"]`);
+  if (btn) { btn.textContent = '✓ Fait !'; btn.style.background = 'rgba(16,185,129,.2)'; }
+}
+
+// ─── BOOT ──────────────────────────────────────────────────────────────────────
+initPyodide().catch(e => {
+  document.getElementById('lstatus').textContent = 'Erreur de chargement. Recharge la page.';
+  console.error(e);
+});
+</script>
+</body>
+</html>
