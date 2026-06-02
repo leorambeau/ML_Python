@@ -86,11 +86,58 @@ header{background:var(--bgc);border-bottom:1px solid var(--bdr);padding:0 20px;h
 .ktable td:first-child{font-family:monospace;color:#a5b4fc}
 .eprompt{font-size:.875rem;line-height:1.75;margin-bottom:12px}
 .eprompt strong{color:#c4b5fd}
+/* ─── PROFILE SCREEN ─── */
+#ps{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.psc{max-width:680px;width:100%;text-align:center}
+.ps-logo{font-size:2.4rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.ps-sub{color:var(--txm);font-size:.9rem;margin-bottom:32px}
+.ps-who{font-size:1.2rem;font-weight:700;margin-bottom:18px;color:var(--tx)}
+.ps-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:20px}
+.ps-card{background:var(--bgc);border:1px solid var(--bdr);border-radius:12px;padding:16px 18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;min-width:200px;max-width:280px;flex:1;position:relative}
+.ps-card:hover{border-color:var(--p);background:rgba(99,102,241,.08);transform:translateY(-2px)}
+.ps-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:#fff;flex-shrink:0}
+.ps-info{flex:1;text-align:left}
+.ps-pname{font-size:.95rem;font-weight:700;margin-bottom:3px}
+.ps-pstat{font-size:.72rem;color:var(--txm);margin-bottom:6px}
+.ps-pbar{height:4px;background:var(--bdr);border-radius:2px;overflow:hidden}
+.ps-pbfill{height:100%;background:linear-gradient(90deg,var(--p),var(--ok));border-radius:2px;transition:width .5s}
+.ps-del{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:rgba(239,68,68,.12);color:#f87171;border:none;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.ps-card:hover .ps-del{opacity:1}
+.ps-del:hover{background:rgba(239,68,68,.3)}
+.ps-empty{color:var(--txm);font-size:.875rem;margin:12px 0 20px}
+.ps-newbtn{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);border-radius:8px;color:#a5b4fc;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .15s}
+.ps-newbtn:hover{background:rgba(99,102,241,.22);border-color:var(--p)}
+.ps-form{display:none;margin-top:16px;background:var(--bgc);border:1px solid var(--bdr);border-radius:10px;padding:20px;max-width:340px;margin-left:auto;margin-right:auto}
+.ps-form h3{margin-bottom:12px;font-size:.95rem}
+.ps-input{width:100%;background:#0d1117;border:1px solid var(--bdr);border-radius:7px;padding:10px 14px;color:var(--tx);font-size:.95rem;outline:none;margin-bottom:10px}
+.ps-input:focus{border-color:var(--p)}
+.ps-fbtn{width:100%;padding:10px;background:var(--p);color:#fff;border:none;border-radius:7px;font-size:.9rem;font-weight:600;cursor:pointer}
+.ps-fbtn:hover{background:var(--pd)}
+/* Profile indicator in header */
+.hprofile{display:flex;align-items:center;gap:8px;font-size:.8rem}
+.hpname{background:rgba(99,102,241,.15);color:#a5b4fc;padding:3px 10px;border-radius:99px;font-weight:600;cursor:pointer;border:1px solid rgba(99,102,241,.25)}
+.hpname:hover{background:rgba(99,102,241,.25)}
 </style>
 </head>
 <body>
 
-<div id="loading">
+<div id="ps">
+  <div class="psc">
+    <div class="ps-logo">🎓 ML Finance</div>
+    <div class="ps-sub">Préparation à l'Examen Final</div>
+    <div class="ps-who">Qui es-tu ?</div>
+    <div class="ps-grid" id="ps-grid"></div>
+    <button class="ps-newbtn" onclick="showCreateForm()">+ Créer un nouveau profil</button>
+    <div class="ps-form" id="ps-form">
+      <h3>Nouveau profil</h3>
+      <input class="ps-input" id="ps-input" type="text" placeholder="Ton prénom..." maxlength="24"
+             onkeydown="if(event.key==='Enter') createProfile()">
+      <button class="ps-fbtn" onclick="createProfile()">Créer mon profil</button>
+    </div>
+  </div>
+</div>
+
+<div id="loading" style="display:none">
   <div class="load-title">ML Finance</div>
   <div class="load-sub">Préparation à l'Examen Final</div>
   <div class="lbar"><div class="lfill" id="lfill"></div></div>
@@ -100,9 +147,14 @@ header{background:var(--bgc);border-bottom:1px solid var(--bdr);padding:0 20px;h
 <div id="app">
   <header>
     <div class="htitle">🎓 ML Finance — Préparation Examen</div>
-    <div class="hprog">
-      <span id="hprogtext">0 / 18</span>
-      <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="hprog">
+        <span id="hprogtext">0 / 18</span>
+        <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+      </div>
+      <div class="hprofile">
+        <span id="hpname" class="hpname" onclick="switchProfile()" title="Changer de profil">👤 <span id="hpname-text">—</span></span>
+      </div>
     </div>
   </header>
   <div class="wrap">
@@ -1482,9 +1534,103 @@ print("Copie le code de l'exemple dans ton terminal !")`,
 const state = {
   current: 0,
   pyodide: null,
+  pyodideReady: false,
   editors: {},
-  completed: new Set(JSON.parse(localStorage.getItem('ml_exam_v2') || '[]'))
+  activeProfile: null,
+  completed: new Set()
 };
+
+// ─── PROFILE SYSTEM ────────────────────────────────────────────────────────────
+function getProfiles() {
+  return JSON.parse(localStorage.getItem('ml_profiles_v1') || '{}');
+}
+function saveProfiles(p) {
+  localStorage.setItem('ml_profiles_v1', JSON.stringify(p));
+}
+
+const COLORS = ['#6366f1','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ef4444','#ec4899'];
+function avatarColor(name) {
+  let h = 0;
+  for (let c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return COLORS[Math.abs(h) % COLORS.length];
+}
+
+function renderProfileScreen() {
+  const profiles = getProfiles();
+  const names = Object.keys(profiles);
+  const grid = document.getElementById('ps-grid');
+  if (names.length === 0) {
+    grid.innerHTML = '<p class="ps-empty">Aucun profil — crée le tien !</p>';
+    return;
+  }
+  grid.innerHTML = names.map(name => {
+    const p = profiles[name];
+    const done = (p.completed || []).length;
+    const pct  = Math.round(done / LESSONS.length * 100);
+    const date = p.lastActive
+      ? new Date(p.lastActive).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})
+      : 'Jamais';
+    const color = avatarColor(name);
+    return `<div class="ps-card" onclick="selectProfile('${name}')">
+      <div class="ps-avatar" style="background:${color}">${name[0].toUpperCase()}</div>
+      <div class="ps-info">
+        <div class="ps-pname">${name}</div>
+        <div class="ps-pstat">${done}/${LESSONS.length} leçons · ${date}</div>
+        <div class="ps-pbar"><div class="ps-pbfill" style="width:${pct}%"></div></div>
+      </div>
+      <button class="ps-del" onclick="deleteProfile(event,'${name}')" title="Supprimer">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function showCreateForm() {
+  const f = document.getElementById('ps-form');
+  f.style.display = f.style.display === 'block' ? 'none' : 'block';
+  if (f.style.display === 'block') setTimeout(() => document.getElementById('ps-input').focus(), 50);
+}
+
+function createProfile() {
+  const input = document.getElementById('ps-input');
+  const name  = input.value.trim();
+  if (!name) { input.focus(); return; }
+  const profiles = getProfiles();
+  if (profiles[name]) { alert('Ce profil existe déjà !'); return; }
+  profiles[name] = { name, completed: [], createdAt: new Date().toISOString() };
+  saveProfiles(profiles);
+  input.value = '';
+  document.getElementById('ps-form').style.display = 'none';
+  selectProfile(name);
+}
+
+function deleteProfile(evt, name) {
+  evt.stopPropagation();
+  if (!confirm(`Supprimer le profil "${name}" ? Sa progression sera perdue.`)) return;
+  const profiles = getProfiles();
+  delete profiles[name];
+  saveProfiles(profiles);
+  renderProfileScreen();
+}
+
+function selectProfile(name) {
+  state.activeProfile = name;
+  const profiles = getProfiles();
+  state.completed = new Set(profiles[name]?.completed || []);
+  document.getElementById('hpname-text').textContent = name;
+  document.getElementById('ps').style.display = 'none';
+  if (state.pyodideReady) {
+    document.getElementById('app').style.display = 'flex';
+    buildSidebar();
+    renderLesson(0);
+  } else {
+    document.getElementById('loading').style.display = 'flex';
+  }
+}
+
+function switchProfile() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('ps').style.display = 'flex';
+  renderProfileScreen();
+}
 
 // ─── PYODIDE INIT ──────────────────────────────────────────────────────────────
 async function initPyodide() {
@@ -1504,12 +1650,17 @@ async function initPyodide() {
   upd(88, 'Chargement de Matplotlib...');
   await state.pyodide.loadPackage('matplotlib');
   state.pyodide.runPython(`import matplotlib; matplotlib.use('Agg')`);
+  state.pyodideReady = true;
   upd(100, 'Prêt !');
-  await new Promise(r => setTimeout(r, 600));
+  await new Promise(r => setTimeout(r, 400));
   document.getElementById('loading').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  buildSidebar();
-  renderLesson(0);
+  // If a profile was already selected while loading, show the app now
+  if (state.activeProfile) {
+    document.getElementById('app').style.display = 'flex';
+    buildSidebar();
+    renderLesson(0);
+  }
+  // Otherwise stay on profile screen (already visible)
 }
 
 // ─── SIDEBAR ───────────────────────────────────────────────────────────────────
@@ -1755,17 +1906,25 @@ function goTo(idx) {
 
 function markDone(idx) {
   state.completed.add(idx);
-  localStorage.setItem('ml_exam_v2', JSON.stringify([...state.completed]));
+  if (state.activeProfile) {
+    const profiles = getProfiles();
+    if (!profiles[state.activeProfile]) profiles[state.activeProfile] = { name: state.activeProfile, completed: [] };
+    profiles[state.activeProfile].completed = [...state.completed];
+    profiles[state.activeProfile].lastActive = new Date().toISOString();
+    saveProfiles(profiles);
+  }
   updateSidebar();
   const btn = document.querySelector(`button[onclick="markDone(${idx})"]`);
   if (btn) { btn.textContent = '✓ Fait !'; btn.style.background = 'rgba(16,185,129,.2)'; }
 }
 
 // ─── BOOT ──────────────────────────────────────────────────────────────────────
+// Load Pyodide in background immediately, show profile screen in parallel
 initPyodide().catch(e => {
   document.getElementById('lstatus').textContent = 'Erreur de chargement. Recharge la page.';
   console.error(e);
 });
+renderProfileScreen();
 </script>
 </body>
 </html>
