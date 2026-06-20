@@ -463,11 +463,11 @@ df.iloc[5, 2] = np.nan
 df.iloc[10, 5] = np.nan
 
 print("Shape:", df.shape)
-print("\nPremières lignes:")
+print("\\nPremières lignes:")
 print(df.head(3).round(3))
-print("\nNaN par colonne:")
+print("\\nNaN par colonne:")
 print(df.isna().sum())
-print(f"\nNaN total: {df.isna().sum().sum()}")
+print(f"\\nNaN total: {df.isna().sum().sum()}")
 print(f"Colonnes: {list(df.columns)}")`,
   exercisePrompt:`Crée un DataFrame de 100 lignes, 5 colonnes nommées 'A', 'B', 'C', 'D', 'target'. Affiche : sa forme, le nombre total de NaN, et les statistiques avec <code>describe()</code>.`,
   starter:`import pandas as pd
@@ -486,7 +486,7 @@ print("Shape:", # TODO)
 print("NaN total:", # TODO)
 
 # Statistiques
-print("\nStatistiques:")
+print("\\nStatistiques:")
 print(# TODO)`,
   hint:`<code>df.shape</code>, <code>df.isna().sum().sum()</code>, <code>df.describe()</code>`,
   solution:`import pandas as pd
@@ -500,7 +500,7 @@ df = pd.DataFrame(
 
 print("Shape:", df.shape)
 print("NaN total:", df.isna().sum().sum())
-print("\nStatistiques:")
+print("\\nStatistiques:")
 print(df.describe().round(2))`
 },
 {
@@ -764,7 +764,7 @@ for alpha in alphas:
 
 # Meilleur alpha
 best = min(results, key=lambda r: r['mse_test'])
-print(f"\n✓ Meilleur alpha: {best['alpha']} (MSE = {best['mse_test']:.4f})")`,
+print(f"\\n✓ Meilleur alpha: {best['alpha']} (MSE = {best['mse_test']:.4f})")`,
   hint:`<code>ridge = Ridge(alpha=alpha)</code> puis <code>ridge.fit(X_train, y_train)</code>. Min: <code>min(results, key=lambda r: r['mse_test'])</code>`,
   solution:`import numpy as np
 from sklearn.linear_model import Ridge
@@ -788,7 +788,7 @@ for alpha in alphas:
     print(f"alpha={alpha:>8} → MSE test = {mse_test:.4f}")
 
 best = min(results, key=lambda r: r['mse_test'])
-print(f"\n✓ Meilleur alpha: {best['alpha']} (MSE = {best['mse_test']:.4f})")`
+print(f"\\n✓ Meilleur alpha: {best['alpha']} (MSE = {best['mse_test']:.4f})")`
 },
 {
   module:"Module 4 · Scikit-learn",
@@ -820,7 +820,7 @@ for k in ks:
 results_df = pd.DataFrame(results)
 print("Tableau pivot - MSE test:")
 print(results_df.pivot(index='k', columns='alpha', values='mse_test').round(3))
-print("\nTableau pivot complet:")
+print("\\nTableau pivot complet:")
 print(results_df.pivot(index='k', columns='alpha', values=['mse_train', 'mse_test']).round(3))`,
   exercisePrompt:`Crée une liste de résultats pour <code>ks = [1, 10, 100]</code> et <code>alphas = [0.1, 1, 10]</code>. Utilise <code>mse_test = k * 0.005 + alpha * 0.002</code>. Affiche le pivot sur <code>mse_test</code>.`,
   starter:`import pandas as pd
@@ -1088,7 +1088,7 @@ for k in ks:
 
 results_df = pd.DataFrame(results)
 pivot = results_df.pivot(index='k', columns='alpha', values='mse_test')
-print("\nMSE test:")
+print("\\nMSE test:")
 print(pivot.round(4))
 
 # Tâche 6: Heatmap
@@ -1158,7 +1158,7 @@ for k in ks:
 
 results_df = pd.DataFrame(results)
 pivot = results_df.pivot(index='k', columns='alpha', values='mse_test')
-print("\nMSE test:"); print(pivot.round(4))
+print("\\nMSE test:"); print(pivot.round(4))
 
 # Tâche 6: Heatmap
 fig, ax = plt.subplots(figsize=(6, 4))
@@ -1219,7 +1219,7 @@ for k in ks:
 
 results_df = pd.DataFrame(results)
 pivot = results_df.pivot(index='k', columns='alpha', values='mse_test')
-print("\nMSE test:"); print(pivot.round(4))
+print("\\nMSE test:"); print(pivot.round(4))
 
 fig, ax = plt.subplots(figsize=(6, 4))
 cax = ax.imshow(pivot.values, aspect='auto', cmap='YlOrRd_r')
@@ -1357,7 +1357,7 @@ for name, param in model.named_parameters():
 # Test forward pass
 x_test = torch.randn(5, 9)   # batch de 5 observations, 9 features
 out = model(x_test)
-print(f"\nInput shape: {x_test.shape}")
+print(f"\\nInput shape: {x_test.shape}")
 print(f"Output shape: {out.shape}")   # (5, 1)`,
   exercisePrompt:`Ce code est à copier et exécuter dans ton terminal. Lis les annotations.`,
   starter:`import torch
