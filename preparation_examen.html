@@ -2082,33 +2082,34 @@ import sys as _sys_, io as _io_
 _sys_.stdout = _io_.StringIO()
 `);
 
-  let hasError = false;
-  try {
-    state.pyodide.runPython(code);
-  } catch(e) {
-    hasError = true;
-    try { state.pyodide.runPython(`_sys_.stdout = _sys_.__stdout__`); } catch(_) {}
-    outEl.textContent = `❌ Erreur :\n${e.message}`;
-    outEl.className = 'out err';
-    btn.disabled = false;
-    btn.innerHTML = '▶ Exécuter';
-    return;
-  }
+  // Espace de noms Python neuf et jetable pour cette exécution : les variables
+  // d'un exercice ne s'accumulent pas en mémoire d'une leçon à l'autre.
+  const ns = state.pyodide.runPython('{}');
 
   try {
-    const captured = state.pyodide.runPython(`
+    try {
+      state.pyodide.runPython(code, { globals: ns });
+    } catch(e) {
+      try { state.pyodide.runPython(`_sys_.stdout = _sys_.__stdout__`); } catch(_) {}
+      outEl.textContent = `❌ Erreur :\n${e.message}`;
+      outEl.className = 'out err';
+      return;
+    }
+
+    try {
+      const captured = state.pyodide.runPython(`
 _r_ = _sys_.stdout.getvalue()
 _sys_.stdout = _sys_.__stdout__
 _r_
 `);
-    outEl.textContent = captured || '✓ Exécuté (aucune sortie texte)';
-  } catch(e) {
-    state.pyodide.runPython(`import sys; sys.stdout = sys.__stdout__`);
-  }
+      outEl.textContent = captured || '✓ Exécuté (aucune sortie texte)';
+    } catch(e) {
+      state.pyodide.runPython(`import sys; sys.stdout = sys.__stdout__`);
+    }
 
-  if (imgEl) {
-    try {
-      const b64 = state.pyodide.runPython(`
+    if (imgEl) {
+      try {
+        const b64 = state.pyodide.runPython(`
 import matplotlib.pyplot as __plt__
 import io as __io__, base64 as __b64__
 __ns__ = __plt__.get_fignums()
@@ -2121,12 +2122,15 @@ if __ns__:
     __result__ = __b64__.b64encode(__buf__.read()).decode()
 __result__
 `);
-      if (b64) { imgEl.src = `data:image/png;base64,${b64}`; imgEl.style.display = 'block'; }
-    } catch(_) {}
+        if (b64) { imgEl.src = `data:image/png;base64,${b64}`; imgEl.style.display = 'block'; }
+      } catch(_) {}
+    }
+  } finally {
+    ns.destroy();
+    state.pyodide.runPython('import gc; gc.collect()');
+    btn.disabled = false;
+    btn.innerHTML = '▶ Exécuter';
   }
-
-  btn.disabled = false;
-  btn.innerHTML = '▶ Exécuter';
 }
 
 // ─── COPY CODE ─────────────────────────────────────────────────────────────────
