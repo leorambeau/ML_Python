@@ -2094,14 +2094,14 @@ _r_
 import matplotlib.pyplot as __plt__
 import io as __io__, base64 as __b64__
 __ns__ = __plt__.get_fignums()
+__result__ = ''
 if __ns__:
     __buf__ = __io__.BytesIO()
     __plt__.figure(__ns__[-1]).savefig(__buf__, format='png', dpi=90, bbox_inches='tight')
     __plt__.close('all')
     __buf__.seek(0)
-    __b64__.b64encode(__buf__.read()).decode()
-else:
-    ''
+    __result__ = __b64__.b64encode(__buf__.read()).decode()
+__result__
 `);
       if (b64) { imgEl.src = `data:image/png;base64,${b64}`; imgEl.style.display = 'block'; }
     } catch(_) {}
