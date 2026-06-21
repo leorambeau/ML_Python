@@ -1993,7 +1993,15 @@ function renderLesson(idx) {
         <div class="hpanel" id="hpanel">${l.hint}</div>
         <div class="spanel" id="spanel">
           <strong>Solution :</strong>
-          <pre>${escHtml(l.solution)}</pre>
+          <div class="ewrap">
+            <div class="eheader">
+              <span class="elabel">Python</span>
+              ${btnRun('sol')}
+            </div>
+            <textarea id="ta_sol">${l.solution}</textarea>
+          </div>
+          <div class="out" id="out_sol">Clique sur ▶ Exécuter pour comparer avec ton résultat.</div>
+          <img class="oimg" id="img_sol" />
         </div>
       ` : `
         <div class="bgrp">
@@ -2016,7 +2024,7 @@ function renderLesson(idx) {
   `;
 
   // Init CodeMirror
-  ['ex','ex2'].forEach(key => {
+  ['ex','ex2','sol'].forEach(key => {
     const ta = document.getElementById(`ta_${key}`);
     if (!ta) return;
     const cm = CodeMirror.fromTextArea(ta, {
