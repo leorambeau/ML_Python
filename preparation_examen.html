@@ -2038,6 +2038,7 @@ function renderLesson(idx) {
       extraKeys: {"Ctrl-Enter": () => l.runnable && runCode(key), "Cmd-Enter": () => l.runnable && runCode(key)}
     });
     state.editors[key] = cm;
+    requestAnimationFrame(() => cm.refresh());
   });
 
   content.scrollTop = 0;
@@ -2161,6 +2162,10 @@ initPyodide().catch(e => {
   console.error(e);
 });
 renderProfileScreen();
+
+window.addEventListener('resize', () => {
+  Object.values(state.editors).forEach(cm => cm.refresh());
+});
 </script>
 </body>
 </html>
