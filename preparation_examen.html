@@ -1762,15 +1762,21 @@ async function verifyPin() {
   }
 }
 
+function getSavedLessonIndex(name) {
+  const saved = parseInt(localStorage.getItem(`mlfin_lesson_${name}`), 10);
+  return (Number.isInteger(saved) && saved >= 0 && saved < LESSONS.length) ? saved : 0;
+}
+
 function enterApp(name, completed) {
   state.activeProfile = name;
   state.completed = new Set(completed);
+  localStorage.setItem('mlfin_profile', name);
   document.getElementById('hpname-text').textContent = name;
   document.getElementById('ps').style.display = 'none';
   if (state.pyodideReady) {
     document.getElementById('app').style.display = 'flex';
     buildSidebar();
-    renderLesson(0);
+    renderLesson(getSavedLessonIndex(name));
   } else {
     document.getElementById('loading').style.display = 'flex';
   }
@@ -1829,6 +1835,8 @@ async function confirmDeleteProfile(evt, name) {
 }
 
 function switchProfile() {
+  localStorage.removeItem('mlfin_profile');
+  state.activeProfile = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('ps').style.display = 'flex';
   renderProfileScreen();
@@ -1888,7 +1896,7 @@ async function initPyodide() {
   if (state.activeProfile) {
     document.getElementById('app').style.display = 'flex';
     buildSidebar();
-    renderLesson(0);
+    renderLesson(getSavedLessonIndex(state.activeProfile));
   }
   // Otherwise stay on profile screen (already visible)
 }
@@ -1926,6 +1934,7 @@ function updateSidebar() {
 function renderLesson(idx) {
   state.current = idx;
   state.editors = {};
+  if (state.activeProfile) localStorage.setItem(`mlfin_lesson_${state.activeProfile}`, idx);
   const l = LESSONS[idx];
   const isLast = idx === LESSONS.length - 1;
   const isFirst = idx === 0;
@@ -2161,7 +2170,23 @@ initPyodide().catch(e => {
   document.getElementById('lstatus').textContent = 'Erreur de chargement. Recharge la page.';
   console.error(e);
 });
-renderProfileScreen();
+
+async function tryAutoLogin() {
+  const saved = localStorage.getItem('mlfin_profile');
+  if (!saved || !FB_READY) return false;
+  try {
+    const profiles = await dbGetProfiles();
+    const profile = profiles[encodeKey(saved)] || profiles[saved];
+    if (!profile) { localStorage.removeItem('mlfin_profile'); return false; }
+    enterApp(saved, profile.completed || []);
+    return true;
+  } catch(e) {
+    console.warn('Auto-login error:', e);
+    return false;
+  }
+}
+
+tryAutoLogin().then(ok => { if (!ok) renderProfileScreen(); });
 
 window.addEventListener('resize', () => {
   Object.values(state.editors).forEach(cm => cm.refresh());
